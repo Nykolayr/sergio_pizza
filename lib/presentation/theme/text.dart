@@ -7,6 +7,12 @@ import 'package:sergio_pizza/presentation/theme/colors.dart';
 /// Позволяет обеспечить единообразие текстовых элементов по всему приложению.
 
 class AppText {
+  static const TextStyle text10grey = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: AppColor.greyText,
+  );
+
   // SemiBold
   static const TextStyle text28sb = TextStyle(
     fontSize: 28,
