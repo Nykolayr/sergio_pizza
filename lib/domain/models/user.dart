@@ -1,47 +1,53 @@
+import 'package:sergio_pizza/domain/models/loyalty.dart';
+import 'package:sergio_pizza/domain/models/promocode.dart';
+
 /// Модель пользователя
 class User {
   int id;
-  String name; //
+  String name; // имя
   String phone; // телефон
+  String lastName; // фамилия
+  DateTime birthDate; // дата рождения
+  Loyalty loyalty; // лоял
   String email; // почта
-  String lang; // язык
-  String card; // банковская карта
-  String formaterCard; // форматированная банковская карта
-  int discount; // скидка
-  int bonus; // бонусы
-  int orders; // заказы
-  bool isMailVerified; // почта верифицирована
+  bool isPush; // признак отправки push
+  Promocode promocode; // промокод
+  UserSex sex; // пол
 
   User({
     required this.id,
     required this.name,
     required this.phone,
+    required this.lastName,
+    required this.birthDate,
     required this.email,
-    required this.lang,
-    required this.card,
-    required this.formaterCard,
-    required this.discount,
-    required this.bonus,
-    required this.orders,
-    required this.isMailVerified,
+    required this.isPush,
+    required this.loyalty,
+    required this.promocode,
+    required this.sex,
   });
+
   factory User.fromJson(Map<String, dynamic> data) {
-    // for (var item in data.entries) {
-    //   print(
-    //       'item.key >>>>>>>> ${item.key} == ${item.value.runtimeType} === ${item.value}');
-    // }
     return User(
       id: data['id'] ?? '',
       name: data['name'] ?? '',
       phone: data['phone'] ?? '',
-      email: data['email'] ?? '',
-      lang: data['lang'] ?? '',
-      card: data['card'] ?? '',
-      formaterCard: data['formatted_card'] ?? '',
-      discount: data['discount'] ?? 0,
-      isMailVerified: data['is_mail_verified'] ?? false,
-      bonus: data['bonus'] ?? 0,
-      orders: data['orders'] ?? 0,
+      lastName: data['last_name'] ?? '',
+      birthDate:
+          data['birth_date'] != null
+              ? DateTime.parse(data['birth_date'])
+              : DateTime.now(),
+      email: data['mail'] ?? '',
+      isPush: data['is_push'] ?? false,
+      loyalty:
+          data['loyalty'] != null
+              ? Loyalty.fromJson(data['loyalty'])
+              : Loyalty.init(),
+      promocode:
+          data['promocode'] != null
+              ? Promocode.fromJson(data['promocode'])
+              : Promocode.init(),
+      sex: data['sex'] != null ? UserSex.values[data['sex']] : UserSex.male,
     );
   }
 
@@ -50,14 +56,13 @@ class User {
       id: 0,
       name: '',
       phone: '',
+      lastName: '',
+      birthDate: DateTime.now(),
       email: '',
-      lang: '',
-      card: '',
-      formaterCard: '',
-      discount: 0,
-      isMailVerified: false,
-      bonus: 0,
-      orders: 0,
+      isPush: false,
+      loyalty: Loyalty.init(),
+      promocode: Promocode.init(),
+      sex: UserSex.male,
     );
   }
 
@@ -66,14 +71,23 @@ class User {
       'id': id,
       'name': name,
       'phone': phone,
-      'email': email,
-      'lang': lang,
-      'card': card,
-      'formatted_card': formaterCard,
-      'discount': discount,
-      'is_mail_verified': isMailVerified,
-      'bonus': bonus,
-      'orders': orders,
+      'last_name': lastName,
+      'birth_date': birthDate.toIso8601String(),
+      'mail': email,
+      'is_push': isPush,
+      'loyalty': loyalty.toJson(),
+      'promocode': promocode.toJson(),
+      'sex': sex.index,
     };
   }
+}
+
+enum UserSex {
+  male,
+  female;
+
+  String get name => switch (this) {
+    UserSex.male => 'Мужчина',
+    UserSex.female => 'Женщина',
+  };
 }

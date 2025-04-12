@@ -156,7 +156,6 @@ class UserRepository extends GetxController {
       SecureStorageService().saveToken(token);
       user.name = name;
       user.phone = phone;
-      user.email = email;
       await saveUserToLocal();
       return '';
     } else if (answer is ResError) {
@@ -171,7 +170,7 @@ class UserRepository extends GetxController {
     if (answer is ResSuccess) {
       user.name = answer.data['name'];
       user.phone = answer.data['phone'];
-      user.email = answer.data['email'];
+
       return true;
     }
     return false;

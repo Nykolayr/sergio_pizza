@@ -6,7 +6,8 @@ import 'package:get/get.dart';
 import 'package:sergio_pizza/data/api/api.dart';
 import 'package:sergio_pizza/data/api/dio_client.dart';
 import 'package:sergio_pizza/data/geolocation_servise.dart';
-import 'package:sergio_pizza/domain/models/main_repository.dart';
+import 'package:sergio_pizza/domain/repository/main_repository.dart';
+
 import 'package:sergio_pizza/domain/repository/user_repository.dart';
 import 'package:sergio_pizza/presentation/screen/auth/bloc/auth_bloc.dart';
 

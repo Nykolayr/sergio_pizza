@@ -1,8 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
-import 'package:sergio_pizza/domain/models/main_repository.dart';
 import 'package:sergio_pizza/domain/models/user.dart';
 import 'package:sergio_pizza/domain/repository/user_repository.dart';
 
