@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>com.sergio.pizza</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -24,6 +24,25 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	
+	<!-- Permission descriptions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Доступ к геолокации необходим для поиска ближайших ресторанов и определения адреса доставки</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Доступ к геолокации необходим для поиска ближайших ресторанов и определения адреса доставки</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Доступ к геолокации необходим для поиска ближайших ресторанов и определения адреса доставки</string>
+	
+	<!-- For share_plus -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Доступ к галерее необходим для сохранения и отправки фотографий</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Доступ к галерее необходим для сохранения фотографий</string>
+	
+	<!-- For secure storage -->
+	<key>KeychainAccessibility</key>
+	<string>WhenUnlocked</string>
+	
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
