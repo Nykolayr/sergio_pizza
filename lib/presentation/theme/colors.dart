@@ -22,4 +22,8 @@ class AppColor {
   static const Color greyfon = Color(0xFFFAFAFA);
   static const Color greyLight3 = Color(0xFFDADADA);
   static const Color blue = Color(0xFF11CAF0);
+  static const Color greyText2 = Color(0xFF777D88);
+  static const Color blueLight = Color(0xFF4685F1);
+  static const Color blueLight2 = Color(0xFFD0DBEF);
+  static const Color textBlue = Color(0xFFB1C6E9);
 }

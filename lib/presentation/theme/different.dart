@@ -3,8 +3,8 @@ import 'package:sergio_pizza/presentation/theme/colors.dart';
 
 class AppDif {
   static const Divider divider = Divider(color: AppColor.grey, height: 1);
-  static const Radius radius16 = Radius.circular(28);
-  static const Radius radius28 = Radius.circular(16);
+  static const Radius radius16 = Radius.circular(16);
+  static const Radius radius28 = Radius.circular(28);
   static const Radius radius14 = Radius.circular(14);
   static const Radius radius12 = Radius.circular(12);
   static const Radius radius10 = Radius.circular(10);
@@ -56,10 +56,9 @@ class AppDif {
       hintStyle: const TextStyle(color: AppColor.grey),
       hintText: hint,
       fillColor: AppColor.whitefon,
-      contentPadding:
-          isTitle
-              ? null
-              : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      contentPadding: isTitle
+          ? null
+          : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
     );
   }
 

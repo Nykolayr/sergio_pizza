@@ -1,21 +1,15 @@
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:gap/gap.dart';
 
 /// большая кнопка
 
 class ButtonWide extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
-  final String iconPath;
-  final bool isNext;
   final bool isEnable;
   const ButtonWide({
     required this.text,
     required this.onPressed,
-    this.isNext = false,
-    this.iconPath = '',
     this.isEnable = true,
     super.key,
   });
@@ -23,44 +17,26 @@ class ButtonWide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onPressed,
-      child: Stack(
-        alignment: AlignmentDirectional.center,
-        children: [
-          Container(
-            width: MediaQuery.of(context).size.width - 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: AppColor.black.withAlpha(20),
-              border: Border.all(color: AppColor.black, width: 2),
-              borderRadius: AppDif.borderRadius10,
+      onTap: () {
+        if (isEnable) {
+          onPressed();
+        }
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width - 40,
+        height: 54,
+        decoration: BoxDecoration(
+          color: isEnable ? AppColor.blueLight : AppColor.blueLight2,
+          borderRadius: AppDif.borderRadius16,
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: AppText.text14sb.copyWith(
+              color: isEnable ? AppColor.whitefon : AppColor.textBlue,
             ),
           ),
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (iconPath.isNotEmpty) SvgPicture.asset(iconPath, width: 20),
-                if (iconPath.isNotEmpty) const Gap(10),
-                Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: AppText.text14sb.copyWith(color: AppColor.whitefon),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (isNext) const Gap(5),
-                if (isNext)
-                  const Flexible(
-                    child: Icon(
-                      Icons.chevron_right,
-                      size: 25,
-                      color: Colors.white,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -89,10 +65,9 @@ class ButtonSelf extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color? colorButton = color;
-    colorButton ??=
-        isDark
-            ? AppColor.redButton
-            : isGrey
+    colorButton ??= isDark
+        ? AppColor.redButton
+        : isGrey
             ? AppColor.greyLight2
             : AppColor.red;
     return GestureDetector(
