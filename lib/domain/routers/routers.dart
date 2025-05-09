@@ -10,55 +10,49 @@ import 'package:sergio_pizza/presentation/screen/splash/splash_page.dart';
 final GoRouter router = GoRouter(
   // observers: [GoNavigatorObserver()],
   debugLogDiagnostics: true,
-  initialLocation: '/main',
-
-  // Get.find<UserRepository>().isReg ? '/main' : '/reg',
+  initialLocation: '/splash',
   routes: <GoRoute>[
     GoRoute(
       name: 'сплэш',
       path: '/splash',
-      pageBuilder:
-          (context, state) => buildPageWithDefaultTransition(
-            type: PageTransitionType.fade,
-            context: context,
-            state: state,
-            child: SplashPage(isReg: state.extra as bool),
-          ),
+      pageBuilder: (context, state) => buildPageWithDefaultTransition(
+        type: PageTransitionType.fade,
+        context: context,
+        state: state,
+        child: const SplashPage(),
+      ),
     ),
     GoRoute(
       name: 'авторизация',
       path: '/auth',
-      pageBuilder:
-          (context, state) => buildPageWithDefaultTransition(
-            type: PageTransitionType.leftToRight,
-            context: context,
-            state: state,
-            child: const AuthPage(),
-          ),
+      pageBuilder: (context, state) => buildPageWithDefaultTransition(
+        type: PageTransitionType.leftToRight,
+        context: context,
+        state: state,
+        child: const AuthPage(),
+      ),
       routes: <GoRoute>[],
     ),
     GoRoute(
       name: 'регистрация',
       path: '/reg',
-      pageBuilder:
-          (context, state) => buildPageWithDefaultTransition(
-            type: PageTransitionType.rightToLeft,
-            context: context,
-            state: state,
-            child: const AuthRegPage(),
-          ),
+      pageBuilder: (context, state) => buildPageWithDefaultTransition(
+        type: PageTransitionType.rightToLeft,
+        context: context,
+        state: state,
+        child: const AuthRegPage(),
+      ),
       routes: <GoRoute>[],
     ),
     GoRoute(
       name: 'Общая',
       path: '/main',
-      pageBuilder:
-          (context, state) => buildPageWithDefaultTransition(
-            type: PageTransitionType.leftToRight,
-            context: context,
-            state: state,
-            child: const MainPage(),
-          ),
+      pageBuilder: (context, state) => buildPageWithDefaultTransition(
+        type: PageTransitionType.leftToRight,
+        context: context,
+        state: state,
+        child: const MainPage(),
+      ),
       routes: <GoRoute>[],
     ),
   ],

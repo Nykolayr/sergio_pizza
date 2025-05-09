@@ -66,13 +66,6 @@ Future initMain() async {
     return 'MainRepository $e';
   }
 
-  // try {
-  //   Get.put<MainBloc>(MainBloc());
-  //   Get.find<MainBloc>().add(GetUserEvent());
-  // } catch (e) {
-  //   Logger.e('MainBloc error = $e');
-  //   return 'bloc $e';
-  // }
-  await Future.delayed(const Duration(seconds: 2));
+  await Future.delayed(const Duration(seconds: 3));
   return '';
 }

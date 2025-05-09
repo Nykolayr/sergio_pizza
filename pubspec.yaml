@@ -3,10 +3,10 @@ description: "Project sergio pizza"
 publish_to: 'none' 
 
 
-version: 0.1.0+1
+version: 0.1.1+1
 
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.5.3
 
 
 
@@ -45,7 +45,8 @@ dependencies:
   flutter_svg: ^2.0.17 #https://pub.dev/packages/flutter_svg
   package_info_plus: ^8.3.0 #https://pub.dev/packages/package_info_plus/install
   device_info_plus: ^11.3.3 #https://pub.dev/packages/device_info_plus
-  geolocator: ^13.0.4 #https://pub.dev/packages/geolocator
+  geolocator: ^12.0.0 #https://pub.dev/packages/geolocator
+  geolocator_android: 4.6.1
   crypto: ^3.0.6 #https://pub.dev/packages/crypto
   pin_code_fields: ^8.0.1 #https://pub.dev/packages/pin_code_fields
   flutter_secure_storage: ^9.2.4 #https://pub.dev/packages/flutter_secure_storage

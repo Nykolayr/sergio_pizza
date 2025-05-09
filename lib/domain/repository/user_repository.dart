@@ -29,6 +29,7 @@ class UserRepository extends GetxController {
   Future init() async {
     // LocalData().clear();
     token = await SecureStorageService().getToken() ?? '';
+    Logger.i('token >>>>> $token');
   }
 
   Future<void> logout() async {
