@@ -54,18 +54,11 @@ dependencies:
   # flutter_carousel_widget: ^3.1.0 #https://pub.dev/packages/flutter_carousel_widget
   cached_network_svg_image: ^1.2.0 #https://pub.dev/packages/cached_network_svg_image
   share_plus: ^10.1.4 #https://pub.dev/packages/share_plus
-  # swipeable_page_route: ^0.4.7 #https://pub.dev/packages/swipeable_page_route
   flutter_cupertino_datetime_picker: ^3.0.0 #https://pub.dev/packages/flutter_cupertino_datetime_picker
   # url_launcher: ^6.3.1 #https://pub.dev/packages/url_launcher
-  # flutter_cached_image: 
-  #   git:
-  #     url: https://github.com/Nykolayr/flutter_cached_image.git
-  #     ref: f515daf6f20ccfcc7c284deef2dae0f2f6b64afe
-  # table_calendar: ^3.2.0 #https://pub.dev/packages/table_calendar
-  # webview_flutter: ^4.10.0 #https://pub.dev/packages/webview_flutter
-  # webview_flutter_wkwebview: ^3.18.5 #https://pub.dev/packages/webview_flutter_wkwebview
-  # google_fonts: ^6.2.1 #https://pub.dev/packages/google_fonts
   mask_text_input_formatter: ^2.9.0 #https://pub.dev/packages/mask_text_input_formatter
+  yandex_mapkit: ^4.1.0     #https://pub.dev/packages/yandex_mapkit
+  yandex_geocoder: ^2.3.1  #https://pub.dev/packages/yandex_geocoder
   
   
 

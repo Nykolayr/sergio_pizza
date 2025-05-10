@@ -7,6 +7,8 @@ import 'package:sergio_pizza/data/secure_storage_servis.dart';
 import 'package:sergio_pizza/domain/models/response_api.dart';
 import 'package:sergio_pizza/domain/models/user.dart';
 import 'package:sergio_pizza/domain/routers/routers.dart';
+import 'package:sergio_pizza/data/geolocation_servise.dart';
+import 'package:yandex_mapkit/yandex_mapkit.dart';
 
 /// репо для юзера
 class UserRepository extends GetxController {
@@ -50,6 +52,16 @@ class UserRepository extends GetxController {
       user.lastName = lastName;
       user.birthDate = parseRuDate(birthDate);
       user.phone = phone;
+
+      // Получение геопозиции пользователя
+      try {
+        final position = await GeolocationService.instance.getCurrentPosition();
+        user.point =
+            Point(latitude: position.latitude, longitude: position.longitude);
+      } catch (e) {
+        // Можно залогировать ошибку или оставить координаты по умолчанию
+      }
+
       await saveUserToLocal();
       return '';
     } else if (answer is ResError) {

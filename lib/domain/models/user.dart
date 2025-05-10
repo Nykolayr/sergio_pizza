@@ -1,5 +1,8 @@
+import 'package:sergio_pizza/domain/models/delivery_address.dart';
 import 'package:sergio_pizza/domain/models/loyalty.dart';
+import 'package:sergio_pizza/domain/models/pickup_point.dart';
 import 'package:sergio_pizza/domain/models/promocode.dart';
+import 'package:yandex_mapkit/yandex_mapkit.dart';
 
 /// Модель пользователя
 class User {
@@ -13,6 +16,10 @@ class User {
   bool isPush; // признак отправки push
   Promocode promocode; // промокод
   UserSex sex; // пол
+  DeliveryAddress deliveryAddress; // адрес доставки
+  PickupPoint pickupPoint; // пункт выдачи
+  bool isDelivery; // признак доставки
+  Point point; // позиция на карте пользователя
 
   User({
     required this.id,
@@ -25,6 +32,10 @@ class User {
     required this.loyalty,
     required this.promocode,
     required this.sex,
+    required this.deliveryAddress,
+    required this.pickupPoint,
+    required this.isDelivery,
+    required this.point,
   });
 
   factory User.fromJson(Map<String, dynamic> data) {
@@ -45,6 +56,19 @@ class User {
           ? Promocode.fromJson(data['promocode'])
           : Promocode.init(),
       sex: data['sex'] != null ? UserSex.values[data['sex']] : UserSex.male,
+      deliveryAddress: data['delivery_address'] != null
+          ? DeliveryAddress.fromJson(data['delivery_address'])
+          : DeliveryAddress.init(),
+      pickupPoint: data['pickup_point'] != null
+          ? PickupPoint.fromJson(data['pickup_point'])
+          : PickupPoint.init(),
+      isDelivery: data['is_delivery'] ?? false,
+      point: data['point'] != null
+          ? Point(
+              latitude: data['point']['latitude'],
+              longitude: data['point']['longitude'],
+            )
+          : Point(latitude: 0, longitude: 0),
     );
   }
 
@@ -60,6 +84,10 @@ class User {
       loyalty: Loyalty.init(),
       promocode: Promocode.init(),
       sex: UserSex.male,
+      deliveryAddress: DeliveryAddress.init(),
+      pickupPoint: PickupPoint.init(),
+      isDelivery: true,
+      point: Point(latitude: 0, longitude: 0),
     );
   }
 
@@ -75,6 +103,10 @@ class User {
       'loyalty': loyalty.toJson(),
       'promocode': promocode.toJson(),
       'sex': sex.index,
+      'delivery_address': deliveryAddress.toJson(),
+      'pickup_point': pickupPoint.toJson(),
+      'is_delivery': isDelivery,
+      'point': point.toJson(),
     };
   }
 }

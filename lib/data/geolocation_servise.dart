@@ -16,7 +16,7 @@ class GeolocationService {
   String? _lastKnownAddress;
 
   // Получение текущих координат
-  Future<Position> _getCurrentPosition() async {
+  Future<Position> getCurrentPosition() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -48,7 +48,7 @@ class GeolocationService {
   // Получение адреса по текущим координатам
   Future<String> getAddress() async {
     try {
-      Position position = await _getCurrentPosition();
+      Position position = await getCurrentPosition();
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,

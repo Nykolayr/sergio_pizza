@@ -27,7 +27,7 @@
 	
 	<!-- Permission descriptions -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Доступ к геолокации необходим для поиска ближайших ресторанов и определения адреса доставки</string>
+	<string>Для отображения вашей позиции на карте</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Доступ к геолокации необходим для поиска ближайших ресторанов и определения адреса доставки</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
