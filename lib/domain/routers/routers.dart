@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:sergio_pizza/common/function.dart';
+import 'package:sergio_pizza/presentation/screen/auth/auth_code_page.dart';
 import 'package:sergio_pizza/presentation/screen/auth/auth_page.dart';
 import 'package:sergio_pizza/presentation/screen/auth/auth_reg_page.dart';
 import 'package:sergio_pizza/presentation/screen/main/main_page.dart';
@@ -31,7 +32,19 @@ final GoRouter router = GoRouter(
         state: state,
         child: const AuthPage(),
       ),
-      routes: <GoRoute>[],
+      routes: <GoRoute>[
+        GoRoute(
+          name: 'ввод кода',
+          path: '/code',
+          pageBuilder: (context, state) => buildPageWithDefaultTransition(
+            type: PageTransitionType.rightToLeft,
+            context: context,
+            state: state,
+            child: const AuthCodePage(),
+          ),
+          routes: <GoRoute>[],
+        ),
+      ],
     ),
     GoRoute(
       name: 'регистрация',

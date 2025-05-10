@@ -4,43 +4,43 @@ class AuthState extends Equatable {
   final User user;
   final AuthStatus status;
   final String error;
-  final bool isPhone;
+  final String phone;
   final bool isReg;
 
   const AuthState({
     required this.user,
     required this.status,
     required this.error,
-    required this.isPhone,
+    required this.phone,
     required this.isReg,
   });
 
   factory AuthState.initial() => AuthState(
-    user: User.initial(),
-    status: AuthStatus.initial,
-    error: '',
-    isPhone: false,
-    isReg: false,
-  );
+        user: User.initial(),
+        status: AuthStatus.initial,
+        error: '',
+        phone: '',
+        isReg: false,
+      );
 
   AuthState copyWith({
     User? user,
     AuthStatus? status,
     String? error,
-    bool? isPhone,
+    String? phone,
     bool? isReg,
   }) {
     return AuthState(
       user: user ?? this.user,
       status: status ?? this.status,
       error: error ?? this.error,
-      isPhone: isPhone ?? this.isPhone,
+      phone: phone ?? this.phone,
       isReg: isReg ?? this.isReg,
     );
   }
 
   @override
-  List<Object?> get props => [user, status, error, isPhone, isReg];
+  List<Object?> get props => [user, status, error, phone, isReg];
 }
 
 enum AuthStatus {

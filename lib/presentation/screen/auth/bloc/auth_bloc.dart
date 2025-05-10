@@ -10,28 +10,24 @@ part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc() : super(AuthState.initial()) {
-    on<AuthUserEvent>(_onAuthEvent);
-    on<AuthRegisterEvent>(_onAuthRegisterEvent);
+    on<AuthPhoneEvent>(_onAuthPhoneEvent);
     on<AuthCodeEvent>(_onAuthCodeEvent);
-    on<AuthChangeEvent>(_onAuthChangeEvent);
-    on<AuthChangeRegEvent>(_onAuthChangeRegEvent);
+    on<AuthCodeNewEvent>(_onAuthCodeNewEvent);
   }
 
-  /// смена регистрации на авторизацию
-  Future<void> _onAuthChangeRegEvent(
-    AuthChangeRegEvent event,
+  /// выслать новый код
+  Future<void> _onAuthCodeNewEvent(
+    AuthCodeNewEvent event,
     Emitter<AuthState> emit,
   ) async {
-    emit(state.copyWith(isReg: !state.isReg));
-  }
-
-  /// смена авторизации на телефон или email
-
-  Future<void> _onAuthChangeEvent(
-    AuthChangeEvent event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(state.copyWith(isPhone: !state.isPhone));
+    emit(state.copyWith(status: AuthStatus.loading));
+    UserRepository repo = Get.find<UserRepository>();
+    final answer = await repo.authPhone(phone: state.phone);
+    if (answer.isEmpty) {
+      emit(state.copyWith(status: AuthStatus.initial));
+    } else {
+      emit(state.copyWith(error: answer, status: AuthStatus.error));
+    }
   }
 
   /// ввод кода
@@ -44,63 +40,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final answer = await repo.checkCode(code: event.code);
 
     if (answer.isEmpty) {
-      User user = await repo.getUser();
       Get.find<MainBloc>().add(GetUserEvent());
-      emit(state.copyWith(status: AuthStatus.successCode, user: user));
+      emit(state.copyWith(status: AuthStatus.successCode));
     } else {
       emit(state.copyWith(error: answer, status: AuthStatus.error));
-      await Future.delayed(const Duration(seconds: 4));
-      emit(state.copyWith(error: ''));
+      await Future.delayed(const Duration(seconds: 12));
+      emit(state.copyWith(error: '', status: AuthStatus.initial));
     }
   }
 
-  /// авторизация по телефону или email
-  Future<void> _onAuthEvent(
-    AuthUserEvent event,
+  /// авторизация по телефону
+  Future<void> _onAuthPhoneEvent(
+    AuthPhoneEvent event,
     Emitter<AuthState> emit,
   ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     UserRepository repo = Get.find<UserRepository>();
-    final answer = await repo.authUser(
-      login: event.login,
-      password: event.password,
-      isPhone: state.isPhone,
-    );
-
-    if (answer.isEmpty) {
-      emit(
-        state.copyWith(
-          isReg: false,
-          user: repo.user,
-          status: AuthStatus.successEnter,
-        ),
-      );
-    } else {
-      emit(state.copyWith(error: answer, status: AuthStatus.error));
-      await Future.delayed(const Duration(seconds: 4));
-      emit(state.copyWith(error: ''));
-    }
-  }
-
-  /// регистрация по логину
-  Future<void> _onAuthRegisterEvent(
-    AuthRegisterEvent event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(state.copyWith(status: AuthStatus.loading));
-    UserRepository repo = Get.find<UserRepository>();
-    final answer = await repo.registerUser(
-      name: event.name,
+    final answer = await repo.authPhone(
       phone: event.phone,
-      email: event.email,
-      password: event.password,
     );
+
     if (answer.isEmpty) {
       emit(
         state.copyWith(
-          isReg: true,
           user: repo.user,
           status: AuthStatus.successEnter,
+          phone: event.phone,
         ),
       );
     } else {

@@ -92,72 +92,21 @@ class UserRepository extends GetxController {
 
   /// проверка кода
   Future<String> checkCode({required String code}) async {
-    // TODO: убрать когда будет api для проверки кода
-    return '';
-    // final answer = await Api().checkCode(code: code);
-    // if (answer is ResSuccess) {
-    //   return '';
-    // } else if (answer is ResError) {
-    //   return answer.errorMessage;
-    // }
-    // return '';
-  }
-
-  /// Авторизация пользователя
-  Future<String> authUser({
-    required String login,
-    required String password,
-    required bool isPhone,
-  }) async {
-    ResponseApi answer;
-    if (isPhone) {
-      answer = await Api().authUserByPhone(phone: login, password: password);
-    } else {
-      answer = await Api().authUserByEmail(mail: login, password: password);
-    }
+    final answer = await Api().checkCode(code: code);
     if (answer is ResSuccess) {
-      token = answer.data['token'];
-      Logger.i('answer.data ${answer.data}');
-      SecureStorageService().saveToken(token);
-      final userAnswer = await Api().getUser(isLoyalty: true);
-      if (userAnswer is ResSuccess) {
-        user = User.fromJson(userAnswer.data);
-        Logger.i('user.name >>>>>>>> ${user.toJson()}');
-        return '';
-      } else if (userAnswer is ResError) {
-        return userAnswer.errorMessage;
-      }
+      return '';
     } else if (answer is ResError) {
-      if (answer.errorMessage.contains('Unauthorized error 401')) {
-        return 'Invalid login or password';
-      }
       return answer.errorMessage;
     }
     return '';
   }
 
-  /// Регистрация пользователя
-  Future<String> registerUser({
-    required String name,
+  /// Авторизация пользователя
+  Future<String> authPhone({
     required String phone,
-    required String email,
-    required String password,
   }) async {
-    Logger.i('registerUser $name $phone $email');
-    final ResponseApi answer = await Api().registerUser(
-      name: name,
-      phone: phone,
-      email: email,
-      password: password,
-    );
-    Logger.i('answer $answer');
+    final answer = await Api().authPhone(phone: phone);
     if (answer is ResSuccess) {
-      Logger.i('answer.data ${answer.data}');
-      token = answer.data['token'];
-      SecureStorageService().saveToken(token);
-      user.name = name;
-      user.phone = phone;
-      await saveUserToLocal();
       return '';
     } else if (answer is ResError) {
       return answer.errorMessage;
