@@ -42,20 +42,21 @@ final GoRouter router = GoRouter(
             state: state,
             child: const AuthCodePage(),
           ),
-          routes: <GoRoute>[],
+          routes: <GoRoute>[
+            GoRoute(
+              name: 'регистрация',
+              path: '/reg',
+              pageBuilder: (context, state) => buildPageWithDefaultTransition(
+                type: PageTransitionType.rightToLeft,
+                context: context,
+                state: state,
+                child: const AuthRegPage(),
+              ),
+              routes: <GoRoute>[],
+            ),
+          ],
         ),
       ],
-    ),
-    GoRoute(
-      name: 'регистрация',
-      path: '/reg',
-      pageBuilder: (context, state) => buildPageWithDefaultTransition(
-        type: PageTransitionType.rightToLeft,
-        context: context,
-        state: state,
-        child: const AuthRegPage(),
-      ),
-      routes: <GoRoute>[],
     ),
     GoRoute(
       name: 'Общая',

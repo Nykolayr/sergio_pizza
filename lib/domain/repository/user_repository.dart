@@ -1,5 +1,6 @@
 import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
+import 'package:sergio_pizza/common/function.dart';
 import 'package:sergio_pizza/data/api/api.dart';
 import 'package:sergio_pizza/data/local_data.dart';
 import 'package:sergio_pizza/data/secure_storage_servis.dart';
@@ -29,7 +30,32 @@ class UserRepository extends GetxController {
   Future init() async {
     // LocalData().clear();
     token = await SecureStorageService().getToken() ?? '';
+    await loadUserFromLocal();
     Logger.i('token >>>>> $token');
+  }
+
+  /// регистрация
+  Future<String> regUser({
+    required String name,
+    required String lastName,
+    required String birthDate,
+    required String phone,
+  }) async {
+    final answer = await Api()
+        .apiRegUser(name: name, lastName: lastName, birthDate: birthDate);
+    if (answer is ResSuccess) {
+      token = answer.data['token'];
+      await SecureStorageService().saveToken(token);
+      user.name = name;
+      user.lastName = lastName;
+      user.birthDate = parseRuDate(birthDate);
+      user.phone = phone;
+      await saveUserToLocal();
+      return '';
+    } else if (answer is ResError) {
+      return answer.errorMessage;
+    }
+    return '';
   }
 
   Future<void> logout() async {
@@ -71,16 +97,18 @@ class UserRepository extends GetxController {
   }
 
   /// получить изера
-  Future<User> getUser() async {
+  Future<String> getUser() async {
     Logger.i('getUser token >>>>> $token');
-    final response = await Api().getUser(isLoyalty: true);
+    final response = await Api().getUser();
     if (response is ResSuccess) {
-      user = User.fromJson(response.data);
+      // user = User.fromJson(response.data);
+      // saveUserToLocal();
+      return '';
     } else if (response is ResError) {
       Logger.e('error getUser ${response.errorMessage}');
-      user = User.initial();
+      return response.errorMessage;
     }
-    return user;
+    return '';
   }
 
   /// Удаление пользователя из локального хранилища и инициализация

@@ -7,6 +7,18 @@ class AuthEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// регистрация
+class AuthRegEvent extends AuthEvent {
+  final String name;
+  final String lastName;
+  final String birthDate;
+  const AuthRegEvent({
+    required this.name,
+    required this.lastName,
+    required this.birthDate,
+  });
+}
+
 /// авторизация по телефону
 class AuthPhoneEvent extends AuthEvent {
   final String phone;

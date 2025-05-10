@@ -9,11 +9,24 @@ part 'main_state.dart';
 
 class MainBloc extends Bloc<MainEvent, MainState> {
   MainBloc() : super(MainState.initial()) {
-    _initializeLocation();
+    // _initializeLocation();
     on<SetErrorEvent>(_onSetErrorEvent);
+    on<GetUserEvent>(_onGetUserEvent);
   }
 
-  /// обновление токена
+  /// получение пользователя
+  Future<void> _onGetUserEvent(
+      GetUserEvent event, Emitter<MainState> emit) async {
+    emit(state.copyWith(isLoading: true));
+    UserRepository repo = Get.find<UserRepository>();
+    final answer = await repo.getUser();
+    emit(state.copyWith(isLoading: false));
+    if (answer.isEmpty) {
+      emit(state.copyWith(user: repo.user));
+    } else {
+      emit(state.copyWith(error: answer));
+    }
+  }
 
   /// установка ошибки
   void _onSetErrorEvent(SetErrorEvent event, Emitter<MainState> emit) async {
@@ -21,7 +34,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
   }
 
   /// определяем местоположение пользователя при инициализации
-  Future<void> _initializeLocation() async {
-    add(UpdateCurrentLocationEvent());
-  }
+  // Future<void> _initializeLocation() async {
+  //   add(UpdateCurrentLocationEvent());
+  // }
 }

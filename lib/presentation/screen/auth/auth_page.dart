@@ -64,7 +64,7 @@ class AuthPageState extends State<AuthPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(
-                      top: 120, bottom: 40, right: 20, left: 20),
+                      top: 80, bottom: 20, right: 20, left: 20),
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

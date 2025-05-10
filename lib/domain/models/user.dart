@@ -33,20 +33,17 @@ class User {
       name: data['name'] ?? '',
       phone: data['phone'] ?? '',
       lastName: data['last_name'] ?? '',
-      birthDate:
-          data['birth_date'] != null
-              ? DateTime.parse(data['birth_date'])
-              : DateTime.now(),
+      birthDate: data['birth_date'] != null
+          ? DateTime.parse(data['birth_date'])
+          : DateTime.now(),
       email: data['mail'] ?? '',
       isPush: data['is_push'] ?? false,
-      loyalty:
-          data['loyalty'] != null
-              ? Loyalty.fromJson(data['loyalty'])
-              : Loyalty.init(),
-      promocode:
-          data['promocode'] != null
-              ? Promocode.fromJson(data['promocode'])
-              : Promocode.init(),
+      loyalty: data['loyalty'] != null
+          ? Loyalty.fromJson(data['loyalty'])
+          : Loyalty.init(),
+      promocode: data['promocode'] != null
+          ? Promocode.fromJson(data['promocode'])
+          : Promocode.init(),
       sex: data['sex'] != null ? UserSex.values[data['sex']] : UserSex.male,
     );
   }
@@ -87,7 +84,7 @@ enum UserSex {
   female;
 
   String get name => switch (this) {
-    UserSex.male => 'Мужчина',
-    UserSex.female => 'Женщина',
-  };
+        UserSex.male => 'Мужчина',
+        UserSex.female => 'Женщина',
+      };
 }

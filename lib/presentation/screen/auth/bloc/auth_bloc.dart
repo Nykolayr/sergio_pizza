@@ -13,6 +13,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthPhoneEvent>(_onAuthPhoneEvent);
     on<AuthCodeEvent>(_onAuthCodeEvent);
     on<AuthCodeNewEvent>(_onAuthCodeNewEvent);
+    on<AuthRegEvent>(_onAuthRegEvent);
+  }
+
+  /// регистрация
+  Future<void> _onAuthRegEvent(
+    AuthRegEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+    UserRepository repo = Get.find<UserRepository>();
+    final answer = await repo.regUser(
+      name: event.name,
+      lastName: event.lastName,
+      birthDate: event.birthDate,
+      phone: state.phone,
+    );
+
+    if (answer.isEmpty) {
+      Get.find<MainBloc>().add(GetUserEvent());
+      emit(state.copyWith(status: AuthStatus.successRegister));
+    } else {
+      emit(state.copyWith(error: answer, status: AuthStatus.error));
+      await Future.delayed(const Duration(seconds: 4));
+      emit(state.copyWith(error: ''));
+    }
   }
 
   /// выслать новый код
@@ -22,6 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     UserRepository repo = Get.find<UserRepository>();
+
     final answer = await repo.authPhone(phone: state.phone);
     if (answer.isEmpty) {
       emit(state.copyWith(status: AuthStatus.initial));
@@ -38,9 +64,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
     UserRepository repo = Get.find<UserRepository>();
     final answer = await repo.checkCode(code: event.code);
-
     if (answer.isEmpty) {
-      Get.find<MainBloc>().add(GetUserEvent());
       emit(state.copyWith(status: AuthStatus.successCode));
     } else {
       emit(state.copyWith(error: answer, status: AuthStatus.error));

@@ -79,10 +79,21 @@ CustomTransitionPage<dynamic> buildPageWithDefaultTransition({
     name: state.name,
     child: child,
     transitionDuration: const Duration(milliseconds: 250),
-    transitionsBuilder:
-        (context, animation, secondaryAnimation, child) => PageTransition(
-          child: child,
-          type: type,
-        ).buildTransitions(context, animation, secondaryAnimation, child),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+        PageTransition(
+      child: child,
+      type: type,
+    ).buildTransitions(context, animation, secondaryAnimation, child),
   );
+}
+
+DateTime parseRuDate(String value) {
+  final parts = value.split('.');
+  if (parts.length == 3) {
+    final day = int.tryParse(parts[0]) ?? 1;
+    final month = int.tryParse(parts[1]) ?? 1;
+    final year = int.tryParse(parts[2]) ?? 2000;
+    return DateTime(year, month, day);
+  }
+  return DateTime(2000, 1, 1);
 }

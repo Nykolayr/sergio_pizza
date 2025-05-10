@@ -10,6 +10,17 @@ class Api {
     return await dio.post('/api/mobile/refresh');
   }
 
+  /// регистрация
+  Future<ResponseApi> apiRegUser({
+    required String name,
+    required String lastName,
+    required String birthDate,
+  }) async {
+    await Future.delayed(const Duration(seconds: 2));
+    return ResSuccess({'token': '1234567890'});
+    // return await dio.post('/api/mobile/reg', data: {'name': name, 'lastName': lastName, 'birthDate': birthDate});
+  }
+
   /// проверка кода
   Future<ResponseApi> checkCode({required String code}) async {
     await Future.delayed(const Duration(seconds: 2));
@@ -37,7 +48,9 @@ class Api {
 
   /// получить пользователя
   Future<ResponseApi> getUser({bool isLoyalty = true}) async {
-    return await dio.post('/api/mobile/user', data: {'loyalty': isLoyalty});
+    await Future.delayed(const Duration(seconds: 2));
+    return ResSuccess({'token': '1234567890'});
+    // return await dio.post('/api/mobile/user', data: {'loyalty': isLoyalty});
   }
 
   /// разлогиниться
