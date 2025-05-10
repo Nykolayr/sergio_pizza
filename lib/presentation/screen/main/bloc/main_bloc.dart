@@ -9,7 +9,6 @@ part 'main_state.dart';
 
 class MainBloc extends Bloc<MainEvent, MainState> {
   MainBloc() : super(MainState.initial()) {
-    // _initializeLocation();
     on<SetErrorEvent>(_onSetErrorEvent);
     on<GetUserEvent>(_onGetUserEvent);
   }
@@ -32,9 +31,4 @@ class MainBloc extends Bloc<MainEvent, MainState> {
   void _onSetErrorEvent(SetErrorEvent event, Emitter<MainState> emit) async {
     emit(state.copyWith(error: event.error));
   }
-
-  /// определяем местоположение пользователя при инициализации
-  // Future<void> _initializeLocation() async {
-  //   add(UpdateCurrentLocationEvent());
-  // }
 }

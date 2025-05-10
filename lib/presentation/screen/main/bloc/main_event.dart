@@ -10,9 +10,6 @@ sealed class MainEvent extends Equatable {
 /// получение пользователя
 class GetUserEvent extends MainEvent {}
 
-/// обновление текущего местоположения
-class UpdateCurrentLocationEvent extends MainEvent {}
-
 /// установка ошибки
 class SetErrorEvent extends MainEvent {
   final String error;
