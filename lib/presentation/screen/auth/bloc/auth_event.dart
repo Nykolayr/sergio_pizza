@@ -7,14 +7,38 @@ class AuthEvent extends Equatable {
   List<Object> get props => [];
 }
 
-/// регистрация
-class AuthRegEvent extends AuthEvent {
+/// апдейт пользователя
+class UpdateUserEvent extends AuthEvent {
+  final User user;
+  const UpdateUserEvent({required this.user});
+}
+
+/// отправка запроса на код в смс
+class SendAcceptEvent extends AuthEvent {
+  final String phone;
+  const SendAcceptEvent({required this.phone});
+}
+
+/// отправка запроса кода для проверки
+class SendCodeEvent extends AuthEvent {
+  final String code;
+  const SendCodeEvent({required this.code});
+}
+
+/// регистрация по телефону
+class RegPhoneEvent extends AuthEvent {
+  final String phone;
+  final String password;
+  final String confirmPassword;
   final String name;
-  final String lastName;
+  final String email;
   final String birthDate;
-  const AuthRegEvent({
+  const RegPhoneEvent({
+    required this.phone,
+    required this.password,
+    required this.confirmPassword,
     required this.name,
-    required this.lastName,
+    required this.email,
     required this.birthDate,
   });
 }
@@ -22,18 +46,6 @@ class AuthRegEvent extends AuthEvent {
 /// авторизация по телефону
 class AuthPhoneEvent extends AuthEvent {
   final String phone;
-  const AuthPhoneEvent({required this.phone});
-}
-
-/// выслать новый код
-class AuthCodeNewEvent extends AuthEvent {
-  const AuthCodeNewEvent();
-}
-
-/// ввод кода
-class AuthCodeEvent extends AuthEvent {
-  final String code;
-  const AuthCodeEvent({
-    required this.code,
-  });
+  final String password;
+  const AuthPhoneEvent({required this.phone, required this.password});
 }

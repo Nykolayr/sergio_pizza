@@ -4,6 +4,7 @@ import 'package:sergio_pizza/common/function.dart';
 import 'package:sergio_pizza/presentation/screen/auth/auth_code_page.dart';
 import 'package:sergio_pizza/presentation/screen/auth/auth_page.dart';
 import 'package:sergio_pizza/presentation/screen/auth/auth_reg_page.dart';
+import 'package:sergio_pizza/presentation/screen/auth/user_reg_page.dart';
 import 'package:sergio_pizza/presentation/screen/main/main_page.dart';
 import 'package:sergio_pizza/presentation/screen/splash/splash_page.dart';
 
@@ -34,28 +35,35 @@ final GoRouter router = GoRouter(
       ),
       routes: <GoRoute>[
         GoRoute(
-          name: 'ввод кода',
-          path: '/code',
+          name: 'Регистрация пользователя',
+          path: '/auth/reg',
           pageBuilder: (context, state) => buildPageWithDefaultTransition(
             type: PageTransitionType.rightToLeft,
             context: context,
             state: state,
-            child: const AuthCodePage(),
+            child: const AuthRegPage(),
           ),
-          routes: <GoRoute>[
-            GoRoute(
-              name: 'регистрация',
-              path: '/reg',
-              pageBuilder: (context, state) => buildPageWithDefaultTransition(
-                type: PageTransitionType.rightToLeft,
-                context: context,
-                state: state,
-                child: const AuthRegPage(),
-              ),
-              routes: <GoRoute>[],
-            ),
-          ],
         ),
+        // GoRoute(
+        //   name: 'ввод кода',
+        //   path: '/code',
+        //     state: state,
+        //     child: const AuthCodePage(),
+        //   ),
+        //   routes: <GoRoute>[
+        //     GoRoute(
+        //       name: 'регистрация пользователя',
+        //       path: '/reg',
+        //       pageBuilder: (context, state) => buildPageWithDefaultTransition(
+        //         type: PageTransitionType.rightToLeft,
+        //         context: context,
+        //         state: state,
+        //         child: const UserRegPage(),
+        //       ),
+        //       routes: <GoRoute>[],
+        //     ),
+        //   ],
+        // ),
       ],
     ),
     GoRoute(

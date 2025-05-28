@@ -49,12 +49,16 @@ enum AuthStatus {
   successEnter,
   successRegister,
   successCode,
+  successAccept,
+  successUpdateUser,
   error;
 
   bool get isSuccessEnter => this == AuthStatus.successEnter;
   bool get isSuccessRegister => this == AuthStatus.successRegister;
   bool get isSuccessCode => this == AuthStatus.successCode;
+  bool get isSuccessAccept => this == AuthStatus.successAccept;
   bool get isError => this == AuthStatus.error;
   bool get isLoading => this == AuthStatus.loading;
   bool get isInitial => this == AuthStatus.initial;
+  bool get isSuccessUpdateUser => this == AuthStatus.successUpdateUser;
 }

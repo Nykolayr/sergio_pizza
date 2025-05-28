@@ -157,7 +157,7 @@ class AuthCodePageState extends State<AuthCodePage> {
                                   // controller: codeController,
                                   onChanged: (value) {
                                     if (value.length == 4) {
-                                      bloc.add(AuthCodeEvent(code: value));
+                                      bloc.add(SendCodeEvent(code: value));
                                     }
                                   },
                                 ),
@@ -179,7 +179,7 @@ class AuthCodePageState extends State<AuthCodePage> {
                                   text: 'Выслать новый код',
                                   isEnable: true,
                                   onPressed: () {
-                                    bloc.add(AuthCodeNewEvent());
+                                    bloc.add(SendAcceptEvent(phone: ''));
                                   },
                                 ),
                                 const Gap(20),

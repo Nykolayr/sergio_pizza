@@ -36,20 +36,24 @@ class UserRepository extends GetxController {
     Logger.i('token >>>>> $token');
   }
 
-  /// регистрация
+  /// регистрация пользователя
   Future<String> regUser({
     required String name,
-    required String lastName,
     required String birthDate,
     required String phone,
+    required String email,
+    required String password,
   }) async {
-    final answer = await Api()
-        .apiRegUser(name: name, lastName: lastName, birthDate: birthDate);
+    final answer = await Api().regUserPhone(
+        name: name,
+        birthDate: birthDate,
+        email: email,
+        phone: phone,
+        password: password);
     if (answer is ResSuccess) {
       token = answer.data['token'];
       await SecureStorageService().saveToken(token);
       user.name = name;
-      user.lastName = lastName;
       user.birthDate = parseRuDate(birthDate);
       user.phone = phone;
 
@@ -59,7 +63,7 @@ class UserRepository extends GetxController {
         user.point =
             Point(latitude: position.latitude, longitude: position.longitude);
       } catch (e) {
-        // Можно залогировать ошибку или оставить координаты по умолчанию
+        Logger.e('error getCurrentPosition $e');
       }
 
       await saveUserToLocal();
@@ -108,6 +112,39 @@ class UserRepository extends GetxController {
     return '';
   }
 
+  /// отправка запроса на код в смс
+  Future<String> sendAccept({required String phone}) async {
+    final answer = await Api().sendAccept(phone: phone);
+    if (answer is ResSuccess) {
+      return '';
+    } else if (answer is ResError) {
+      return answer.errorMessage;
+    }
+    return '';
+  }
+
+  /// отправка запроса на код в смс
+  Future<String> sendCode({required String phone, required String code}) async {
+    final answer = await Api().checkCode(phone: phone, code: code);
+    if (answer is ResSuccess) {
+      return '';
+    } else if (answer is ResError) {
+      return answer.errorMessage;
+    }
+    return '';
+  }
+
+  /// апдейт пользователя
+  Future<String> updateUser({required User user}) async {
+    final answer = await Api().updateUser(user: user);
+    if (answer is ResSuccess) {
+      return '';
+    } else if (answer is ResError) {
+      return answer.errorMessage;
+    }
+    return '';
+  }
+
   /// получить изера
   Future<String> getUser() async {
     Logger.i('getUser token >>>>> $token');
@@ -130,23 +167,22 @@ class UserRepository extends GetxController {
     user = User.initial();
   }
 
-  /// проверка кода
-  Future<String> checkCode({required String code}) async {
-    final answer = await Api().checkCode(code: code);
-    if (answer is ResSuccess) {
-      return '';
-    } else if (answer is ResError) {
-      return answer.errorMessage;
-    }
-    return '';
-  }
-
   /// Авторизация пользователя
   Future<String> authPhone({
     required String phone,
+    required String password,
   }) async {
-    final answer = await Api().authPhone(phone: phone);
+    final answer = await Api().authPhone(phone: phone, password: password);
     if (answer is ResSuccess) {
+      token = answer.data['token'];
+      await SecureStorageService().saveToken(token);
+      final resultUser = await loadUserFromApi();
+      if (resultUser.isNotEmpty) {
+        await saveUserToLocal();
+      } else {
+        await SecureStorageService().deleteToken();
+        return resultUser;
+      }
       return '';
     } else if (answer is ResError) {
       return answer.errorMessage;
@@ -155,15 +191,16 @@ class UserRepository extends GetxController {
   }
 
   /// загрузка пользователя из api
-  Future<bool> loadUserFromApi() async {
-    final answer = await Api().getUser(isLoyalty: true);
+  Future<String> loadUserFromApi() async {
+    final answer = await Api().getUser();
     if (answer is ResSuccess) {
-      user.name = answer.data['name'];
-      user.phone = answer.data['phone'];
-
-      return true;
+      user = User.fromJson(answer.data);
+      return '';
+    } else if (answer is ResError) {
+      Logger.e('error loadUserFromApi ${answer.errorMessage}');
+      return answer.errorMessage;
     }
-    return false;
+    return '';
   }
 
   /// Загрузка пользователя из локального хранилища

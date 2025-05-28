@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sergio_pizza/domain/routers/routers.dart';
 import 'package:sergio_pizza/presentation/screen/auth/bloc/auth_bloc.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 import 'package:sergio_pizza/presentation/widgets/buttons.dart';
 import 'package:flutter/gestures.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:sergio_pizza/presentation/widgets/text_field.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -18,6 +20,7 @@ class AuthPage extends StatefulWidget {
 
 class AuthPageState extends State<AuthPage> {
   final phoneController = TextEditingController();
+  final passwordController = TextEditingController();
   final maskFormatter = MaskTextInputFormatter(
     mask: '+7 (###) ###-##-##',
     filter: {"#": RegExp(r'[0-9]')},
@@ -126,56 +129,47 @@ class AuthPageState extends State<AuthPage> {
                                 ),
                               ],
                             ),
-                            const Gap(10),
-                            Container(
-                              margin: const EdgeInsets.only(top: 2),
-                              width: double.infinity,
-                              height: 1,
-                              color: const Color(0xFFE5E5E5),
+                            const Gap(20),
+                            AppTextFormField(
+                              label: 'Пароль',
+                              controller: passwordController,
+                              type: AppTextFieldType.password,
                             ),
-                            const Gap(30),
-                            RichText(
-                              textAlign: TextAlign.left,
-                              text: TextSpan(
-                                style: AppText.text10grey,
-                                children: [
-                                  const TextSpan(
-                                      text:
-                                          'Нажимая кнопку, вы соглашаетесь с '),
-                                  TextSpan(
-                                    text: 'пользовательским соглашением',
-                                    style: TextStyle(color: Colors.blue),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        // TODO: открыть пользовательское соглашение
-                                      },
-                                  ),
-                                  const TextSpan(text: ' и '),
-                                  TextSpan(
-                                    text:
-                                        'политикой обработки персональных данных',
-                                    style: TextStyle(color: Colors.blue),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        // TODO: открыть политику обработки
-                                      },
-                                  ),
-                                ],
+                            const Gap(20),
+                            Center(
+                              child: GestureDetector(
+                                onTap: () {
+                                  // context.go('/auth/reg');
+                                },
+                                child: Text('Забыли пароль?',
+                                    style: AppText.text12lb
+                                        .copyWith(color: AppColor.blue)),
                               ),
                             ),
+                            const Gap(20),
                           ],
                         ),
                         Column(
                           children: [
                             ButtonWide(
-                              text: 'Отправить код',
+                              text: 'Войти',
                               isEnable: isEnable,
                               onPressed: () {
                                 bloc.add(AuthPhoneEvent(
-                                    phone: phoneController.text));
+                                  phone: phoneController.text,
+                                  password: passwordController.text,
+                                ));
                               },
                             ),
                             const Gap(20),
+                            ButtonWide(
+                              text: 'Зарегистрироваться',
+                              isEnable: true,
+                              onPressed: () {
+                                context.goNamed('Регистрация пользователя');
+                              },
+                            ),
+                            const Gap(40),
                           ],
                         ),
                       ]),
