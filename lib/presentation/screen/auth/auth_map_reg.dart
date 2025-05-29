@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sergio_pizza/presentation/screen/auth/bloc/auth_bloc.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
-import 'package:sergio_pizza/presentation/widgets/buttons.dart';
-import 'package:sergio_pizza/presentation/widgets/data_field.dart';
-import 'package:sergio_pizza/presentation/widgets/text_field.dart';
 
 class AuthMapRegPage extends StatefulWidget {
   const AuthMapRegPage({super.key});

@@ -1,7 +1,3 @@
-import 'package:sergio_pizza/domain/models/delivery_address.dart';
-import 'package:sergio_pizza/domain/models/loyalty.dart';
-import 'package:sergio_pizza/domain/models/pickup_point.dart';
-import 'package:sergio_pizza/domain/models/promocode.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 
 /// Модель пользователя

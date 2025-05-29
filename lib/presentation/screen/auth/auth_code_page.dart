@@ -25,8 +25,11 @@ class AuthCodePageState extends State<AuthCodePage> {
   @override
   void initState() {
     super.initState();
-    final screenWidth = WidgetsBinding.instance.window.physicalSize.width /
-        WidgetsBinding.instance.window.devicePixelRatio;
+    // Размеры экрана будут вычислены в build методе через MediaQuery
+  }
+
+  void _calculateFieldWidth(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final totalGaps = gap * (fieldsCount - 1);
     fieldWidth = (screenWidth - 40 - totalGaps) / fieldsCount;
   }
@@ -38,6 +41,8 @@ class AuthCodePageState extends State<AuthCodePage> {
 
   @override
   Widget build(BuildContext context) {
+    _calculateFieldWidth(context);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       resizeToAvoidBottomInset: true,

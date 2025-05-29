@@ -3,11 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sergio_pizza/domain/routers/routers.dart';
 import 'package:sergio_pizza/presentation/screen/auth/bloc/auth_bloc.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 import 'package:sergio_pizza/presentation/widgets/buttons.dart';
-import 'package:flutter/gestures.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:sergio_pizza/presentation/widgets/text_field.dart';
 
