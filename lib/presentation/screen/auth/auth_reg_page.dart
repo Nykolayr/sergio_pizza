@@ -49,7 +49,6 @@ class AuthRegPageState extends State<AuthRegPage> {
       isEnable = maskFormatter.getUnmaskedText().length == 10 &&
           passwordController.text.isNotEmpty &&
           confirmPasswordController.text.isNotEmpty &&
-          passwordController.text == confirmPasswordController.text &&
           nameController.text.length >= 4 &&
           emailController.text.isNotEmpty &&
           _isValidEmail(emailController.text) &&
@@ -238,9 +237,7 @@ class AuthRegPageState extends State<AuthRegPage> {
                             text: 'Зарегистрироваться',
                             isEnable: isEnable,
                             onPressed: () {
-                              if (_formKey.currentState!.validate() &&
-                                  passwordController.text ==
-                                      confirmPasswordController.text) {
+                              if (_formKey.currentState!.validate()) {
                                 bloc.add(RegPhoneEvent(
                                   phone: phoneController.text,
                                   password: passwordController.text,
