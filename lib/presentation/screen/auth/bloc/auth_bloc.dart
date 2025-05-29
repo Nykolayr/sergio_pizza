@@ -87,7 +87,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
       );
       if (answer.isEmpty) {
-        emit(state.copyWith(status: AuthStatus.successRegister));
+        emit(state.copyWith(
+            status: AuthStatus.successRegister, phone: cleanedPhone));
       } else {
         emit(state.copyWith(error: answer, status: AuthStatus.error));
       }
