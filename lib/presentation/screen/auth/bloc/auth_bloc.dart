@@ -16,6 +16,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<UpdateUserEvent>(_onUpdateUserEvent);
   }
 
+  /// очистка номера телефона от символов форматирования
+  String _cleanPhoneNumber(String phone) {
+    if (phone.isEmpty) return phone;
+    // Удаляем все символы кроме цифр
+    String cleaned = phone.replaceAll(RegExp(r'[^\d]'), '');
+    // Если номер начинается с 7, оставляем как есть
+    // Если начинается с 8, заменяем на 7
+    if (cleaned.startsWith('8') && cleaned.length == 11) {
+      cleaned = '7${cleaned.substring(1)}';
+    }
+    return cleaned;
+  }
+
   /// апдейт пользователя
   Future<void> _onUpdateUserEvent(
     UpdateUserEvent event,
@@ -46,10 +59,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(state.copyWith(status: AuthStatus.loading));
-    final answer = await repo.sendAccept(
-        phone: event.phone.isEmpty ? state.phone : event.phone);
+    String phone = state.phone;
+    if (event.phone.isNotEmpty) {
+      phone = _cleanPhoneNumber(event.phone);
+    }
+    final answer = await repo.sendAccept(phone: phone);
     if (answer.isEmpty) {
-      emit(state.copyWith(status: AuthStatus.successAccept));
+      emit(state.copyWith(status: AuthStatus.successAccept, phone: phone));
     } else {
       emit(state.copyWith(error: answer, status: AuthStatus.error));
     }
@@ -62,10 +78,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     if (event.password == event.confirmPassword) {
+      final cleanedPhone = _cleanPhoneNumber(event.phone);
       final answer = await repo.regUser(
         name: event.name,
         birthDate: event.birthDate,
-        phone: event.phone,
+        phone: cleanedPhone,
         password: event.password,
         email: event.email,
       );
@@ -86,8 +103,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(state.copyWith(status: AuthStatus.loading));
+    final cleanedPhone = _cleanPhoneNumber(event.phone);
     final answer = await repo.authPhone(
-      phone: event.phone,
+      phone: cleanedPhone,
       password: event.password,
     );
 
@@ -96,7 +114,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         state.copyWith(
           user: repo.user,
           status: AuthStatus.successEnter,
-          phone: event.phone,
+          phone: cleanedPhone,
         ),
       );
     } else {

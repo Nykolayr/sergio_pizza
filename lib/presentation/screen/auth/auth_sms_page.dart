@@ -55,7 +55,7 @@ class AuthSmsPageState extends State<AuthSmsPage> {
           buildWhen: (previous, current) {
             if (previous.status != current.status &&
                 current.status.isSuccessEnter) {
-              context.go('/auth/code');
+              context.goNamed('ввод кода');
             }
             return true;
           },
@@ -175,7 +175,7 @@ class AuthSmsPageState extends State<AuthSmsPage> {
                                     phone: phoneController.text));
                               },
                             ),
-                            const Gap(20),
+                            const Gap(60),
                           ],
                         ),
                       ]),
