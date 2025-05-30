@@ -6,7 +6,6 @@ import 'package:sergio_pizza/presentation/screen/auth/bloc/auth_bloc.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 import 'package:sergio_pizza/presentation/widgets/buttons.dart';
 import 'package:flutter/gestures.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class AuthPassPage extends StatefulWidget {
   const AuthPassPage({super.key});

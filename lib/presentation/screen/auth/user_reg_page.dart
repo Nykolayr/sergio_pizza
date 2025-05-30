@@ -16,44 +16,58 @@ class UserRegPage extends StatefulWidget {
   State<UserRegPage> createState() => UserRegPageState();
 }
 
-class UserRegPageState extends State<UserRegPage> {
+class UserRegPageState extends State<UserRegPage> with WidgetsBindingObserver {
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   final nameController = TextEditingController();
-  final lastNameController = TextEditingController();
-  final dateController = TextEditingController();
+  final emailController = TextEditingController();
+  final birthDateController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   AuthBloc bloc = Get.find<AuthBloc>();
   bool isEnable = false;
-  bool isKeyboardOpen = false;
+  double keyboardHeight = 0;
 
   @override
   void initState() {
     super.initState();
-    dateController.text = '01.01.2000';
-    nameController.addListener(_checkFields);
-    lastNameController.addListener(_checkFields);
-    dateController.addListener(_checkFields);
+    WidgetsBinding.instance.addObserver(this);
+    passwordController.addListener(validateForm);
+    confirmPasswordController.addListener(validateForm);
+    nameController.addListener(validateForm);
+    emailController.addListener(validateForm);
+    birthDateController.addListener(validateForm);
   }
 
-  void _checkFields() {
-    final enable = nameController.text.trim().isNotEmpty &&
-        lastNameController.text.trim().isNotEmpty &&
-        dateController.text.trim().isNotEmpty;
-    if (isEnable != enable) {
-      setState(() {
-        isEnable = enable;
-      });
-    }
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+    setState(() {
+      keyboardHeight = bottomInset /
+          WidgetsBinding
+              .instance.platformDispatcher.views.first.devicePixelRatio;
+    });
+  }
+
+  void validateForm() {
+    setState(() {
+      isEnable = passwordController.text.isNotEmpty &&
+          confirmPasswordController.text.isNotEmpty &&
+          emailController.text.isNotEmpty &&
+          birthDateController.text.isNotEmpty;
+    });
   }
 
   @override
   void dispose() {
-    nameController.removeListener(_checkFields);
-    lastNameController.removeListener(_checkFields);
-    dateController.removeListener(_checkFields);
+    WidgetsBinding.instance.removeObserver(this);
+    passwordController.dispose();
+    confirmPasswordController.dispose();
     nameController.dispose();
-    lastNameController.dispose();
-    dateController.dispose();
+    emailController.dispose();
+    birthDateController.dispose();
     super.dispose();
   }
 
@@ -70,7 +84,6 @@ class UserRegPageState extends State<UserRegPage> {
         extendBodyBehindAppBar: true,
         resizeToAvoidBottomInset: true,
         backgroundColor: Colors.white,
-        extendBody: true,
         body: BlocBuilder<AuthBloc, AuthState>(
           bloc: bloc,
           buildWhen: (previous, current) {
@@ -83,63 +96,51 @@ class UserRegPageState extends State<UserRegPage> {
           builder: (context, state) {
             return Stack(
               children: [
-                Padding(
+                SingleChildScrollView(
                   padding: const EdgeInsets.only(
-                      top: 80, bottom: 20, right: 20, left: 20),
-                  child: SingleChildScrollView(
+                      top: 80, bottom: 30, right: 20, left: 20),
+                  child: Form(
+                    key: formKey,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Form(
-                          key: formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Center(
-                                child: Text(
-                                    'Один шаг до завершения регистрации',
-                                    textAlign: TextAlign.center,
-                                    style: AppText.text20sb),
-                              ),
-                              const Gap(20),
-                              AppTextFormField(
-                                label: 'Имя',
-                                controller: nameController,
-                                type: AppTextFieldType.text,
-                              ),
-                              AppTextFormField(
-                                label: 'Фамилия',
-                                controller: lastNameController,
-                                type: AppTextFieldType.text,
-                              ),
-                              AppDateField(
-                                label: 'Дата рождения',
-                                controller: dateController,
-                                errorText: null,
-                              ),
-                              const Gap(30),
-                            ],
-                          ),
+                        Center(
+                          child: Text('Один шаг до завершения регистрации',
+                              textAlign: TextAlign.center,
+                              style: AppText.text20sb),
                         ),
-                        Column(
-                          children: [
-                            ButtonWide(
-                              text: 'Сохранить',
-                              isEnable: !isKeyboardOpen && isEnable,
-                              onPressed: () {
-                                bloc.add(RegPhoneEvent(
-                                  name: nameController.text,
-                                  birthDate: dateController.text,
-                                  phone: '',
-                                  password: '',
-                                  confirmPassword: '',
-                                  email: '',
-                                ));
-                              },
-                            ),
-                            const Gap(20),
-                          ],
+                        const Gap(20),
+                        AppTextFormField(
+                          label: 'Имя',
+                          controller: nameController,
+                          type: AppTextFieldType.text,
                         ),
+                        AppTextFormField(
+                          label: 'Email',
+                          controller: emailController,
+                          type: AppTextFieldType.email,
+                        ),
+                        AppDateField(
+                          label: 'Дата рождения',
+                          controller: birthDateController,
+                          errorText: null,
+                        ),
+                        AppTextFormField(
+                          label: 'Пароль',
+                          controller: passwordController,
+                          type: AppTextFieldType.password,
+                        ),
+                        const Gap(20),
+                        AppTextFormField(
+                          label: 'Подтвердите пароль',
+                          controller: confirmPasswordController,
+                          type: AppTextFieldType.password,
+                        ),
+                        const Gap(20),
+                        if (state.error.isNotEmpty)
+                          Text(state.error,
+                              style: AppText.text12lb
+                                  .copyWith(color: AppColor.red)),
                       ],
                     ),
                   ),
@@ -153,6 +154,31 @@ class UserRegPageState extends State<UserRegPage> {
               ],
             );
           },
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            margin: EdgeInsets.only(
+              bottom: keyboardHeight,
+            ),
+            color: Colors.white,
+            child: ButtonWide(
+              text: 'Сохранить',
+              isEnable: isEnable,
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                if (formKey.currentState?.validate() ?? false) {
+                  bloc.add(RegPhoneEvent(
+                    name: nameController.text,
+                    birthDate: birthDateController.text,
+                    password: passwordController.text,
+                    confirmPassword: confirmPasswordController.text,
+                    email: emailController.text,
+                  ));
+                }
+              },
+            ),
+          ),
         ),
       ),
     );

@@ -27,7 +27,7 @@ class Api {
     return await dio.post('/user', data: user.toJsonApi());
   }
 
-  /// регистрация по телефону
+  /// регистрация
   Future<ResponseApi> regUserPhone({
     required String phone,
     required String password,
@@ -35,7 +35,7 @@ class Api {
     required String birthDate,
     required String email,
   }) async {
-    return await dio.post('/login', data: {
+    return await dio.post('/register', data: {
       "name": name,
       "email": email,
       "phone": phone,

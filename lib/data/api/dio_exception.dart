@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
-import 'package:sergio_pizza/presentation/widgets/alerts.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:sergio_pizza/main.dart';
 
 class DioExceptions implements Exception {
   late String errorText;
@@ -49,8 +51,9 @@ class DioExceptions implements Exception {
     }
 
     Logger.e('Ошибка fromDioError  $errorText');
-    // Убираем автоматический показ диалога - пусть приложение само решает
-    // showErrorDialog(errorText);
+
+    // Показываем тостер с ошибкой
+    _showErrorToast(errorText);
   }
 
   String handleError(int? statusCode, dynamic error) {
@@ -63,7 +66,28 @@ class DioExceptions implements Exception {
           if (error['code'] == 3) {
             errorText = 'Data is busy, try to select other days';
           } else {
-            errorText = 'Bad request error 400';
+            // Формируем сообщение из message и errors
+            String message = error['message'] ?? 'Bad request';
+            String errorsText = '';
+
+            if (error['errors'] is Map) {
+              Map<String, dynamic> errors = error['errors'];
+              List<String> errorParts = [];
+
+              errors.forEach((key, value) {
+                if (value is List) {
+                  errorParts.add('$key: ${value.join(', ')}');
+                } else {
+                  errorParts.add('$key: $value');
+                }
+              });
+
+              if (errorParts.isNotEmpty) {
+                errorsText = ' {${errorParts.join(', ')}}';
+              }
+            }
+
+            errorText = message + errorsText;
           }
         } else {
           errorText = 'Bad request error 400';
@@ -117,4 +141,42 @@ class DioExceptions implements Exception {
 
   @override
   String toString() => errorText;
+
+  void _showErrorToast(String message) {
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      FToast fToast = FToast();
+      fToast.init(context);
+
+      Widget toast = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8.0),
+          color: Colors.red,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error, color: Colors.white, size: 20),
+            const SizedBox(width: 8.0),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      fToast.showToast(
+        child: toast,
+        gravity: ToastGravity.BOTTOM,
+        toastDuration: const Duration(seconds: 4),
+      );
+    }
+  }
 }

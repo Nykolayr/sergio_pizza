@@ -33,14 +33,12 @@ class SendCodeEvent extends AuthEvent {
 
 /// регистрация по телефону
 class RegPhoneEvent extends AuthEvent {
-  final String phone;
   final String password;
   final String confirmPassword;
   final String name;
   final String email;
   final String birthDate;
   const RegPhoneEvent({
-    required this.phone,
     required this.password,
     required this.confirmPassword,
     required this.name,
@@ -54,4 +52,9 @@ class AuthPhoneEvent extends AuthEvent {
   final String phone;
   final String password;
   const AuthPhoneEvent({required this.phone, required this.password});
+}
+
+/// очистка ошибки
+class ClearErrorEvent extends AuthEvent {
+  const ClearErrorEvent();
 }

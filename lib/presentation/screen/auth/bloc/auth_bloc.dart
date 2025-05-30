@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
@@ -8,6 +9,8 @@ part 'auth_event.dart';
 part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  Timer? _errorTimer;
+
   AuthBloc() : super(AuthState.initial()) {
     on<AuthPhoneEvent>(_onAuthPhoneEvent);
     on<RegPhoneEvent>(_onRegPhoneEvent);
@@ -15,6 +18,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SendCodeEvent>(_onSendCodeEvent);
     on<UpdateUserEvent>(_onUpdateUserEvent);
     on<TryLoginEvent>(_onTryLoginEvent);
+    on<ClearErrorEvent>(_onClearErrorEvent);
+  }
+
+  @override
+  Future<void> close() {
+    _errorTimer?.cancel();
+    return super.close();
   }
 
   /// отправка телефона для авторизации
@@ -110,24 +120,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  /// регистрация по телефону
+  /// регистрация
   Future<void> _onRegPhoneEvent(
     RegPhoneEvent event,
     Emitter<AuthState> emit,
   ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     if (event.password == event.confirmPassword) {
-      final cleanedPhone = _cleanPhoneNumber(event.phone);
       final answer = await repo.regUser(
         name: event.name,
         birthDate: event.birthDate,
-        phone: cleanedPhone,
+        phone: state.phone,
         password: event.password,
         email: event.email,
       );
       if (answer.isEmpty) {
-        emit(state.copyWith(
-            status: AuthStatus.successRegister, phone: cleanedPhone));
+        emit(state.copyWith(status: AuthStatus.successRegister));
       } else {
         clearErrorWithShow(emit, answer);
       }
@@ -164,8 +172,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// очистка ошибки и показа ошибки
   Future<void> clearErrorWithShow(Emitter<AuthState> emit, String error) async {
     emit(state.copyWith(error: error, status: AuthStatus.error));
-    await Future.delayed(const Duration(seconds: 5));
-    emit(state.copyWith(error: ''));
+    _errorTimer?.cancel();
+    _errorTimer = Timer(const Duration(seconds: 8), () {
+      add(const ClearErrorEvent());
+    });
   }
 
   /// очистка номера телефона от символов форматирования
@@ -194,5 +204,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
 
     return null;
+  }
+
+  /// очистка ошибки
+  Future<void> _onClearErrorEvent(
+    ClearErrorEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(error: ''));
   }
 }

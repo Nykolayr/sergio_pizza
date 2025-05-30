@@ -1,10 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sergio_pizza/domain/routers/routers.dart';
 import 'domain/routers/routers.dart' show router;
 import 'package:yandex_mapkit/yandex_mapkit.dart' as ymap;
 import 'package:yandex_geocoder/yandex_geocoder.dart' as ygeo;
+
+// GlobalKey для доступа к контексту глобально
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +25,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Sergio Pizza',
+      locale: const Locale('ru', 'RU'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ru', 'RU'),
+        Locale('en', 'US'),
+      ],
       theme: ThemeData(
         fontFamily: 'ProximaNova',
         pageTransitionsTheme: const PageTransitionsTheme(
@@ -38,10 +53,12 @@ class MyApp extends StatelessWidget {
           minScaleFactor: 0.9,
           maxScaleFactor: 1.1,
         );
-        return MediaQuery(
-          data: mq.copyWith(textScaler: fontScale),
-          child: child!,
-        );
+        return FToastBuilder()(
+            context,
+            MediaQuery(
+              data: mq.copyWith(textScaler: fontScale),
+              child: child!,
+            ));
       },
     );
   }

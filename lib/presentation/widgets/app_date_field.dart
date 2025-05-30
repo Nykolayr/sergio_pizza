@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 
 class AppDateField extends StatelessWidget {
@@ -33,9 +34,27 @@ class AppDateField extends StatelessWidget {
           onTap: () async {
             final picked = await showDatePicker(
               context: context,
+              locale: const Locale('ru', 'RU'),
               initialDate: _parseDate(controller.text) ?? DateTime(2000, 1, 1),
               firstDate: DateTime(1900),
               lastDate: DateTime.now(),
+              helpText: 'Выберите дату',
+              cancelText: 'Отмена',
+              confirmText: 'Выбрать',
+              fieldLabelText: 'Введите дату',
+              fieldHintText: 'дд.мм.гггг',
+              errorFormatText: 'Неверный формат даты',
+              errorInvalidText: 'Неверная дата',
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: Theme.of(context).colorScheme.copyWith(
+                          primary: AppColor.blue,
+                        ),
+                  ),
+                  child: child!,
+                );
+              },
             );
             if (picked != null) {
               controller.text = _formatDate(picked);
