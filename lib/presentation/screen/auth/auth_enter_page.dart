@@ -82,130 +82,108 @@ class AuthEnterPageState extends State<AuthEnterPage>
           builder: (context, state) {
             return Stack(
               children: [
-                Padding(
+                SingleChildScrollView(
                   padding: const EdgeInsets.only(
-                      top: 80, bottom: 20, right: 20, left: 20),
+                      top: 80, bottom: 30, right: 20, left: 20),
                   child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Center(
-                              child: Text('Укажите номер \nтелефона',
-                                  textAlign: TextAlign.center,
-                                  style: AppText.text20sb),
-                            ),
-                            const Gap(30),
-                            Center(
-                              child: Text('На него отправим код подтверждения',
-                                  style: AppText.text14sb),
-                            ),
-                            const Gap(40),
-                            Text('Введите номер телефона',
-                                style: AppText.text12lb
-                                    .copyWith(color: AppColor.greyText2)),
-                            const Gap(12),
-                            Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Text('🇷🇺',
-                                      style: TextStyle(fontSize: 18)),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text('Укажите номер \nтелефона',
+                            textAlign: TextAlign.center,
+                            style: AppText.text20sb),
+                      ),
+                      const Gap(30),
+                      Center(
+                        child: Text('На него отправим код подтверждения',
+                            style: AppText.text14sb),
+                      ),
+                      const Gap(40),
+                      Text('Введите номер телефона',
+                          style: AppText.text12lb
+                              .copyWith(color: AppColor.greyText2)),
+                      const Gap(12),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Text('🇷🇺', style: TextStyle(fontSize: 18)),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: phoneController,
+                              inputFormatters: [maskFormatter],
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                hintText: '+7 (___) ___-__-__',
+                                hintStyle: TextStyle(
+                                  color: Color(0xFFAAB2C9),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w400,
                                 ),
-                                Expanded(
-                                  child: TextField(
-                                    controller: phoneController,
-                                    inputFormatters: [maskFormatter],
-                                    keyboardType: TextInputType.phone,
-                                    decoration: InputDecoration(
-                                      hintText: '+7 (___) ___-__-__',
-                                      hintStyle: TextStyle(
-                                        color: Color(0xFFAAB2C9),
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      border: InputBorder.none,
-                                      isCollapsed: true,
-                                      contentPadding: EdgeInsets.zero,
-                                    ),
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        isEnable = maskFormatter
-                                                .getUnmaskedText()
-                                                .length ==
-                                            10;
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Gap(10),
-                            Container(
-                              margin: const EdgeInsets.only(top: 2),
-                              width: double.infinity,
-                              height: 1,
-                              color: const Color(0xFFE5E5E5),
-                            ),
-                            const Gap(30),
-                            RichText(
-                              textAlign: TextAlign.left,
-                              text: TextSpan(
-                                style: AppText.text10grey,
-                                children: [
-                                  const TextSpan(
-                                      text:
-                                          'Нажимая кнопку, вы соглашаетесь с '),
-                                  TextSpan(
-                                    text: 'пользовательским соглашением',
-                                    style: TextStyle(color: Colors.blue),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        // TODO: открыть пользовательское соглашение
-                                      },
-                                  ),
-                                  const TextSpan(text: ' и '),
-                                  TextSpan(
-                                    text:
-                                        'политикой обработки персональных данных',
-                                    style: TextStyle(color: Colors.blue),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        // TODO: открыть политику обработки
-                                      },
-                                  ),
-                                ],
+                                border: InputBorder.none,
+                                isCollapsed: true,
+                                contentPadding: EdgeInsets.zero,
                               ),
-                            ),
-                            if (state.error.isNotEmpty) ...[
-                              const Gap(30),
-                              Text('Ошибка: ${state.error}',
-                                  style: AppText.text12lb
-                                      .copyWith(color: Colors.red)),
-                            ],
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            ButtonWide(
-                              text: 'Войти',
-                              isEnable: isEnable,
-                              onPressed: () {
-                                FocusScope.of(context).unfocus();
-                                bloc.add(
-                                    TryLoginEvent(phone: phoneController.text));
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  isEnable =
+                                      maskFormatter.getUnmaskedText().length ==
+                                          10;
+                                });
                               },
                             ),
-                            const Gap(60),
+                          ),
+                        ],
+                      ),
+                      const Gap(10),
+                      Container(
+                        margin: const EdgeInsets.only(top: 2),
+                        width: double.infinity,
+                        height: 1,
+                        color: const Color(0xFFE5E5E5),
+                      ),
+                      const Gap(30),
+                      RichText(
+                        textAlign: TextAlign.left,
+                        text: TextSpan(
+                          style: AppText.text10grey,
+                          children: [
+                            const TextSpan(
+                                text: 'Нажимая кнопку, вы соглашаетесь с '),
+                            TextSpan(
+                              text: 'пользовательским соглашением',
+                              style: TextStyle(color: Colors.blue),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  // TODO: открыть пользовательское соглашение
+                                },
+                            ),
+                            const TextSpan(text: ' и '),
+                            TextSpan(
+                              text: 'политикой обработки персональных данных',
+                              style: TextStyle(color: Colors.blue),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  // TODO: открыть политику обработки
+                                },
+                            ),
                           ],
                         ),
-                      ]),
+                      ),
+                      if (state.error.isNotEmpty) ...[
+                        const Gap(30),
+                        Text('Ошибка: ${state.error}',
+                            style:
+                                AppText.text12lb.copyWith(color: Colors.red)),
+                      ],
+                    ],
+                  ),
                 ),
                 if (state.status.isLoading)
                   const Positioned.fill(
@@ -216,6 +194,23 @@ class AuthEnterPageState extends State<AuthEnterPage>
               ],
             );
           },
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            margin: EdgeInsets.only(
+              bottom: keyboardHeight,
+            ),
+            color: Colors.white,
+            child: ButtonWide(
+              text: 'Войти',
+              isEnable: isEnable,
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                bloc.add(TryLoginEvent(phone: phoneController.text));
+              },
+            ),
+          ),
         ),
       ),
     );

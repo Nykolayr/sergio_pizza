@@ -17,12 +17,14 @@ class AuthCodePage extends StatefulWidget {
   State<AuthCodePage> createState() => AuthCodePageState();
 }
 
-class AuthCodePageState extends State<AuthCodePage> {
+class AuthCodePageState extends State<AuthCodePage>
+    with WidgetsBindingObserver {
   AuthBloc bloc = Get.find<AuthBloc>();
   bool isEnable = false;
   double fieldWidth = 60;
   static const int fieldsCount = 4;
   static const double gap = 15.0;
+  double keyboardHeight = 0;
 
   // Переменные для таймера
   Timer? _timer;
@@ -32,8 +34,21 @@ class AuthCodePageState extends State<AuthCodePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Запускаем таймер при входе на страницу
     _startTimer();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+    setState(() {
+      keyboardHeight = bottomInset /
+          WidgetsBinding
+              .instance.platformDispatcher.views.first.devicePixelRatio;
+    });
   }
 
   void _calculateFieldWidth(BuildContext context) {
@@ -68,6 +83,7 @@ class AuthCodePageState extends State<AuthCodePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
   }
@@ -99,141 +115,102 @@ class AuthCodePageState extends State<AuthCodePage> {
             final isError = state.error.isNotEmpty;
             return Stack(
               children: [
-                Padding(
+                SingleChildScrollView(
                   padding: const EdgeInsets.only(
-                      top: 80, bottom: 20, right: 20, left: 20),
-                  child: SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: MediaQuery.of(context).size.height -
-                            MediaQuery.of(context).viewInsets.bottom -
-                            160, // 160 = top + bottom padding
-                      ),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      top: 80, bottom: 30, right: 20, left: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Введите код, отправленный в СМС на указанный номер',
+                          textAlign: TextAlign.center, style: AppText.text20sb),
+                      const Gap(30),
+                      RichText(
+                        textAlign: TextAlign.left,
+                        text: TextSpan(
+                          style: AppText.text14lb,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                    'Введите код, отправленный в СМС на указанный номер',
-                                    textAlign: TextAlign.center,
-                                    style: AppText.text20sb),
-                                const Gap(30),
-                                RichText(
-                                  textAlign: TextAlign.left,
-                                  text: TextSpan(
-                                    style: AppText.text14lb,
-                                    children: [
-                                      TextSpan(
-                                          text:
-                                              'Код отправлен в смс на номер '),
-                                      TextSpan(
-                                        style: AppText.text14sb,
-                                        text: state.phone,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                //TODO: убрать, как только сделаем бэк
-                                const Gap(20),
-                                Text('Код ${state.code} для тестов',
-                                    style: AppText.text14lb),
-                                const Gap(20),
-                                GestureDetector(
-                                  onTap: () {
-                                    context.pop();
-                                  },
-                                  child: Text('Изменить номер',
-                                      style: AppText.text14sb
-                                          .copyWith(color: AppColor.blueLight)),
-                                ),
-                                const Gap(40),
-                                // Ввод кода
-                                PinCodeTextField(
-                                  appContext: context,
-                                  length: fieldsCount,
-                                  obscureText: false,
-                                  animationType: AnimationType.fade,
-                                  pinTheme: PinTheme(
-                                    shape: PinCodeFieldShape.box,
-                                    borderRadius: BorderRadius.circular(12),
-                                    fieldHeight: fieldWidth,
-                                    fieldWidth: fieldWidth,
-                                    activeColor: isError
-                                        ? Colors.transparent
-                                        : Color(0xFFE5E5E5),
-                                    selectedColor: isError
-                                        ? Colors.transparent
-                                        : AppColor.blueLight,
-                                    inactiveColor: isError
-                                        ? Colors.transparent
-                                        : Color(0xFFE5E5E5),
-                                    activeFillColor: Colors.white,
-                                    inactiveFillColor: Colors.white,
-                                    selectedFillColor: Colors.white,
-                                    borderWidth: isError ? 0.1 : 1,
-                                    inActiveBoxShadow: isError
-                                        ? [
-                                            BoxShadow(
-                                              color: Color(0xFFE93F3F)
-                                                  .withAlpha(
-                                                      (255 * 0.15).toInt()),
-                                              blurRadius: 12,
-                                              spreadRadius: 0,
-                                              offset: Offset(0, 0),
-                                            ),
-                                          ]
-                                        : [],
-                                  ),
-                                  textStyle: TextStyle(
-                                    color: isError ? Colors.red : Colors.black,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 24,
-                                  ),
-                                  cursorColor: Colors.black,
-                                  animationDuration:
-                                      Duration(milliseconds: 200),
-                                  enableActiveFill: true,
-                                  keyboardType: TextInputType.number,
-                                  // controller: codeController,
-                                  onChanged: (value) {
-                                    Logger.i('sendCode value >>>>> $value');
-                                    if (value.length == 4) {
-                                      bloc.add(SendCodeEvent(code: value));
-                                    }
-                                  },
-                                ),
-                                if (isError)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Text(
-                                      state.error,
-                                      style: AppText.text14lb
-                                          .copyWith(color: AppColor.red),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            Column(
-                              children: [
-                                ButtonWide(
-                                  text: _canResendCode
-                                      ? 'Выслать новый код'
-                                      : 'Повторная отправка через $_remainingSeconds сек',
-                                  isEnable: _canResendCode,
-                                  onPressed:
-                                      _canResendCode ? _onResendCode : () {},
-                                ),
-                                const Gap(20),
-                              ],
+                            TextSpan(text: 'Код отправлен в смс на номер '),
+                            TextSpan(
+                              style: AppText.text14sb,
+                              text: state.phone,
                             ),
                           ],
                         ),
                       ),
-                    ),
+                      //TODO: убрать, как только сделаем бэк
+                      const Gap(20),
+                      Text('Код ${state.code} для тестов',
+                          style: AppText.text14lb),
+                      const Gap(20),
+                      GestureDetector(
+                        onTap: () {
+                          context.pop();
+                        },
+                        child: Text('Изменить номер',
+                            style: AppText.text14sb
+                                .copyWith(color: AppColor.blueLight)),
+                      ),
+                      const Gap(40),
+                      // Ввод кода
+                      PinCodeTextField(
+                        appContext: context,
+                        length: fieldsCount,
+                        obscureText: false,
+                        animationType: AnimationType.fade,
+                        pinTheme: PinTheme(
+                          shape: PinCodeFieldShape.box,
+                          borderRadius: BorderRadius.circular(12),
+                          fieldHeight: fieldWidth,
+                          fieldWidth: fieldWidth,
+                          activeColor:
+                              isError ? Colors.transparent : Color(0xFFE5E5E5),
+                          selectedColor:
+                              isError ? Colors.transparent : AppColor.blueLight,
+                          inactiveColor:
+                              isError ? Colors.transparent : Color(0xFFE5E5E5),
+                          activeFillColor: Colors.white,
+                          inactiveFillColor: Colors.white,
+                          selectedFillColor: Colors.white,
+                          borderWidth: isError ? 0.1 : 1,
+                          inActiveBoxShadow: isError
+                              ? [
+                                  BoxShadow(
+                                    color: Color(0xFFE93F3F)
+                                        .withAlpha((255 * 0.15).toInt()),
+                                    blurRadius: 12,
+                                    spreadRadius: 0,
+                                    offset: Offset(0, 0),
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        textStyle: TextStyle(
+                          color: isError ? Colors.red : Colors.black,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 24,
+                        ),
+                        cursorColor: Colors.black,
+                        animationDuration: Duration(milliseconds: 200),
+                        enableActiveFill: true,
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          Logger.i('sendCode value >>>>> $value');
+                          if (value.length == 4) {
+                            bloc.add(SendCodeEvent(code: value));
+                          }
+                        },
+                      ),
+                      if (isError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            state.error,
+                            style:
+                                AppText.text14lb.copyWith(color: AppColor.red),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 if (state.status.isLoading)
@@ -245,6 +222,22 @@ class AuthCodePageState extends State<AuthCodePage> {
               ],
             );
           }),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          margin: EdgeInsets.only(
+            bottom: keyboardHeight,
+          ),
+          color: Colors.white,
+          child: ButtonWide(
+            text: _canResendCode
+                ? 'Выслать новый код'
+                : 'Повторная отправка через $_remainingSeconds сек',
+            isEnable: _canResendCode,
+            onPressed: _canResendCode ? _onResendCode : () {},
+          ),
+        ),
+      ),
     );
   }
 }

@@ -14,19 +14,35 @@ class AuthPassPage extends StatefulWidget {
   State<AuthPassPage> createState() => AuthPassPageState();
 }
 
-class AuthPassPageState extends State<AuthPassPage> {
+class AuthPassPageState extends State<AuthPassPage>
+    with WidgetsBindingObserver {
   final passController = TextEditingController();
 
   AuthBloc bloc = Get.find<AuthBloc>();
   bool isEnable = false;
+  double keyboardHeight = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+    setState(() {
+      keyboardHeight = bottomInset /
+          WidgetsBinding
+              .instance.platformDispatcher.views.first.devicePixelRatio;
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     passController.dispose();
     super.dispose();
   }
@@ -57,93 +73,72 @@ class AuthPassPageState extends State<AuthPassPage> {
           builder: (context, state) {
             return Stack(
               children: [
-                Padding(
+                SingleChildScrollView(
                   padding: const EdgeInsets.only(
-                      top: 80, bottom: 20, right: 20, left: 20),
+                      top: 80, bottom: 30, right: 20, left: 20),
                   child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text('Укажите номер \nтелефона',
+                            textAlign: TextAlign.center,
+                            style: AppText.text20sb),
+                      ),
+                      const Gap(30),
+                      Center(
+                        child: Text('На него отправим код подтверждения',
+                            style: AppText.text14sb),
+                      ),
+                      const Gap(40),
+                      Text('Введите номер телефона',
+                          style: AppText.text12lb
+                              .copyWith(color: AppColor.greyText2)),
+                      const Gap(12),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Text('🇷🇺', style: TextStyle(fontSize: 18)),
+                          ),
+                        ],
+                      ),
+                      const Gap(10),
+                      Container(
+                        margin: const EdgeInsets.only(top: 2),
+                        width: double.infinity,
+                        height: 1,
+                        color: const Color(0xFFE5E5E5),
+                      ),
+                      const Gap(30),
+                      RichText(
+                        textAlign: TextAlign.left,
+                        text: TextSpan(
+                          style: AppText.text10grey,
                           children: [
-                            Center(
-                              child: Text('Укажите номер \nтелефона',
-                                  textAlign: TextAlign.center,
-                                  style: AppText.text20sb),
+                            const TextSpan(
+                                text: 'Нажимая кнопку, вы соглашаетесь с '),
+                            TextSpan(
+                              text: 'пользовательским соглашением',
+                              style: TextStyle(color: Colors.blue),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  // TODO: открыть пользовательское соглашение
+                                },
                             ),
-                            const Gap(30),
-                            Center(
-                              child: Text('На него отправим код подтверждения',
-                                  style: AppText.text14sb),
-                            ),
-                            const Gap(40),
-                            Text('Введите номер телефона',
-                                style: AppText.text12lb
-                                    .copyWith(color: AppColor.greyText2)),
-                            const Gap(12),
-                            Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Text('🇷🇺',
-                                      style: TextStyle(fontSize: 18)),
-                                ),
-                              ],
-                            ),
-                            const Gap(10),
-                            Container(
-                              margin: const EdgeInsets.only(top: 2),
-                              width: double.infinity,
-                              height: 1,
-                              color: const Color(0xFFE5E5E5),
-                            ),
-                            const Gap(30),
-                            RichText(
-                              textAlign: TextAlign.left,
-                              text: TextSpan(
-                                style: AppText.text10grey,
-                                children: [
-                                  const TextSpan(
-                                      text:
-                                          'Нажимая кнопку, вы соглашаетесь с '),
-                                  TextSpan(
-                                    text: 'пользовательским соглашением',
-                                    style: TextStyle(color: Colors.blue),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        // TODO: открыть пользовательское соглашение
-                                      },
-                                  ),
-                                  const TextSpan(text: ' и '),
-                                  TextSpan(
-                                    text:
-                                        'политикой обработки персональных данных',
-                                    style: TextStyle(color: Colors.blue),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        // TODO: открыть политику обработки
-                                      },
-                                  ),
-                                ],
-                              ),
+                            const TextSpan(text: ' и '),
+                            TextSpan(
+                              text: 'политикой обработки персональных данных',
+                              style: TextStyle(color: Colors.blue),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  // TODO: открыть политику обработки
+                                },
                             ),
                           ],
                         ),
-                        Column(
-                          children: [
-                            ButtonWide(
-                              text: 'Войти',
-                              isEnable: isEnable,
-                              onPressed: () {
-                                FocusScope.of(context).unfocus();
-                                bloc.add(
-                                    TryLoginEvent(phone: passController.text));
-                              },
-                            ),
-                            const Gap(60),
-                          ],
-                        ),
-                      ]),
+                      ),
+                    ],
+                  ),
                 ),
                 if (state.status.isLoading)
                   const Positioned.fill(
@@ -154,6 +149,23 @@ class AuthPassPageState extends State<AuthPassPage> {
               ],
             );
           },
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            margin: EdgeInsets.only(
+              bottom: keyboardHeight,
+            ),
+            color: Colors.white,
+            child: ButtonWide(
+              text: 'Войти',
+              isEnable: isEnable,
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                bloc.add(TryLoginEvent(phone: passController.text));
+              },
+            ),
+          ),
         ),
       ),
     );
