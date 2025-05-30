@@ -16,7 +16,8 @@ class AuthEnterPage extends StatefulWidget {
   State<AuthEnterPage> createState() => AuthEnterPageState();
 }
 
-class AuthEnterPageState extends State<AuthEnterPage> {
+class AuthEnterPageState extends State<AuthEnterPage>
+    with WidgetsBindingObserver {
   final phoneController = TextEditingController();
   final maskFormatter = MaskTextInputFormatter(
     mask: '+7 (###) ###-##-##',
@@ -24,14 +25,29 @@ class AuthEnterPageState extends State<AuthEnterPage> {
   );
   AuthBloc bloc = Get.find<AuthBloc>();
   bool isEnable = false;
+  double keyboardHeight = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+    setState(() {
+      keyboardHeight = bottomInset /
+          WidgetsBinding
+              .instance.platformDispatcher.views.first.devicePixelRatio;
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     phoneController.dispose();
     super.dispose();
   }

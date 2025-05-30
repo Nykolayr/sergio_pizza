@@ -129,7 +129,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (event.password == event.confirmPassword) {
       final answer = await repo.regUser(
         name: event.name,
-        birthDate: event.birthDate,
+        birthDate: _convertDateFormat(event.birthDate),
         phone: state.phone,
         password: event.password,
         email: event.email,
@@ -142,6 +142,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } else {
       clearErrorWithShow(emit, 'Пароли не совпадают');
     }
+  }
+
+  /// преобразование даты из формата DD.MM.YYYY в YYYY-MM-DD
+  String _convertDateFormat(String dateString) {
+    final parts = dateString.split('.');
+    if (parts.length == 3) {
+      final day = parts[0].padLeft(2, '0');
+      final month = parts[1].padLeft(2, '0');
+      final year = parts[2];
+      return '$year-$month-$day';
+    }
+    return '2000-01-01'; // значение по умолчанию
   }
 
   /// авторизация по телефону

@@ -1,6 +1,5 @@
 import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
-import 'package:sergio_pizza/common/function.dart';
 import 'package:sergio_pizza/data/api/api.dart';
 import 'package:sergio_pizza/data/local_data.dart';
 import 'package:sergio_pizza/data/secure_storage_servis.dart';
@@ -44,19 +43,14 @@ class UserRepository extends GetxController {
     required String email,
     required String password,
   }) async {
-    final answer = await Api().regUserPhone(
-        name: name,
-        birthDate: birthDate,
-        email: email,
-        phone: phone,
-        password: password);
+    final answer = await Api().updateUser(
+      name: name,
+      birthDate: birthDate,
+      email: email,
+      password: password,
+    );
     if (answer is ResSuccess) {
-      token = answer.data['token'];
-      await SecureStorageService().saveToken(token);
-      user.name = name;
-      user.birthDate = parseRuDate(birthDate);
-      user.phone = phone;
-
+      user = User.fromJsonApi(answer.data);
       // Получение геопозиции пользователя
       try {
         final position = await GeolocationService.instance.getCurrentPosition();
@@ -96,7 +90,6 @@ class UserRepository extends GetxController {
     token = await SecureStorageService().getToken() ?? '';
     final response = await Api().refreshToken();
     if (response is ResError) {
-      Logger.i('refreshToken error >>>>> ${response.errorMessage}');
       await Future.delayed(const Duration(seconds: 3));
       final context = router.routerDelegate.navigatorKey.currentContext;
       if (context != null) {
@@ -114,7 +107,7 @@ class UserRepository extends GetxController {
 
   /// отправка телефона для авторизации
   Future<Map<String, dynamic>> tryLogin({required String phone}) async {
-    final answer = await Api().tryLogin(phone: phone);
+    final answer = await Api().tryLoginApi(phone: phone);
     if (answer is ResSuccess) {
       return answer.data;
     } else if (answer is ResError) {
@@ -138,17 +131,12 @@ class UserRepository extends GetxController {
   Future<String> sendCode({required String phone, required String code}) async {
     final answer = await Api().checkCode(phone: phone, code: code);
     if (answer is ResSuccess) {
-      return '';
-    } else if (answer is ResError) {
-      return answer.errorMessage;
-    }
-    return '';
-  }
+      Logger.i('checkCode answer >>>>> ${answer.data}');
+      if (answer.data['data'] != null && answer.data['data']['token'] != null) {
+        token = answer.data['data']['token'];
 
-  /// апдейт пользователя
-  Future<String> updateUser({required User user}) async {
-    final answer = await Api().updateUser(user: user);
-    if (answer is ResSuccess) {
+        await SecureStorageService().saveToken(token);
+      }
       return '';
     } else if (answer is ResError) {
       return answer.errorMessage;
@@ -161,8 +149,8 @@ class UserRepository extends GetxController {
     Logger.i('getUser token >>>>> $token');
     final response = await Api().getUser();
     if (response is ResSuccess) {
-      // user = User.fromJson(response.data);
-      // saveUserToLocal();
+      user = User.fromJsonApi(response.data);
+      saveUserToLocal();
       return '';
     } else if (response is ResError) {
       Logger.e('error getUser ${response.errorMessage}');
@@ -205,7 +193,7 @@ class UserRepository extends GetxController {
   Future<String> loadUserFromApi() async {
     final answer = await Api().getUser();
     if (answer is ResSuccess) {
-      user = User.fromJson(answer.data);
+      user = User.fromJsonApi(answer.data);
       return '';
     } else if (answer is ResError) {
       Logger.e('error loadUserFromApi ${answer.errorMessage}');

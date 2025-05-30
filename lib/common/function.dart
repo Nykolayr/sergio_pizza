@@ -88,12 +88,16 @@ CustomTransitionPage<dynamic> buildPageWithDefaultTransition({
 }
 
 DateTime parseRuDate(String value) {
-  final parts = value.split('.');
+  final parts = value.split('-');
   if (parts.length == 3) {
-    final day = int.tryParse(parts[0]) ?? 1;
+    final year = int.tryParse(parts[0]) ?? 2000;
     final month = int.tryParse(parts[1]) ?? 1;
-    final year = int.tryParse(parts[2]) ?? 2000;
+    final day = int.tryParse(parts[2]) ?? 1;
     return DateTime(year, month, day);
   }
   return DateTime(2000, 1, 1);
+}
+
+String formatDate(DateTime date) {
+  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }

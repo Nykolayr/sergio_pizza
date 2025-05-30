@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -198,6 +199,7 @@ class AuthCodePageState extends State<AuthCodePage> {
                                   keyboardType: TextInputType.number,
                                   // controller: codeController,
                                   onChanged: (value) {
+                                    Logger.i('sendCode value >>>>> $value');
                                     if (value.length == 4) {
                                       bloc.add(SendCodeEvent(code: value));
                                     }

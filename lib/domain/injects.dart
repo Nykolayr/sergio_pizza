@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:sergio_pizza/data/api/api.dart';
 import 'package:sergio_pizza/data/api/dio_client.dart';
+import 'package:sergio_pizza/data/device_service.dart';
 import 'package:sergio_pizza/data/geolocation_servise.dart';
 import 'package:sergio_pizza/domain/repository/main_repository.dart';
 
@@ -14,6 +15,14 @@ import 'package:sergio_pizza/presentation/screen/main/bloc/main_bloc.dart';
 
 /// внедряем зависимости
 Future initMain() async {
+  // Инициализируем Device ID в самом начале
+  try {
+    final deviceId = await DeviceService.getDeviceId();
+    Logger.i('Device ID initialized: $deviceId');
+  } catch (e) {
+    Logger.e('DeviceService initialization error = $e');
+  }
+
   await Get.putAsync(() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     return packageInfo;

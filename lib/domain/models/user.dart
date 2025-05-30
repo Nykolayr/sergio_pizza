@@ -7,7 +7,7 @@ class User {
   String phone; // телефон
   DateTime birthDate; // дата рождения
   String email; // почта
-
+  int role; // роль
   Point point; // позиция на карте пользователя
 
   User({
@@ -17,6 +17,7 @@ class User {
     required this.birthDate,
     required this.email,
     required this.point,
+    required this.role,
   });
 
   factory User.fromJson(Map<String, dynamic> data) {
@@ -34,6 +35,21 @@ class User {
               longitude: data['point']['longitude'],
             )
           : Point(latitude: 0, longitude: 0),
+      role: data['role'] ?? 3,
+    );
+  }
+
+  factory User.fromJsonApi(Map<String, dynamic> data) {
+    return User(
+      id: data['id'] ?? 0,
+      name: data['name'] ?? '',
+      phone: data['phone'] ?? '',
+      birthDate: data['birthdate'] != null
+          ? DateTime.parse(data['birthdate'])
+          : DateTime.now(),
+      email: data['email'] ?? '',
+      point: Point(latitude: 0, longitude: 0), // API не возвращает координаты
+      role: data['role'] ?? 3,
     );
   }
 
@@ -45,6 +61,7 @@ class User {
       birthDate: DateTime.now(),
       email: '',
       point: Point(latitude: 0, longitude: 0),
+      role: 3,
     );
   }
 
@@ -56,6 +73,7 @@ class User {
       'birth_date': birthDate.toIso8601String(),
       'mail': email,
       'point': point.toJson(),
+      'role': role,
     };
   }
 
@@ -66,6 +84,7 @@ class User {
       'phone': phone,
       'birthdate':
           '${birthDate.year.toString().padLeft(4, '0')}-${birthDate.month.toString().padLeft(2, '0')}-${birthDate.day.toString().padLeft(2, '0')}',
+      'role': role,
     };
   }
 }

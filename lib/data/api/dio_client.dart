@@ -3,6 +3,8 @@ import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
 import 'package:sergio_pizza/common/constants.dart';
 import 'package:sergio_pizza/data/api/dio_exception.dart';
+import 'package:sergio_pizza/data/device_service.dart';
+import 'package:sergio_pizza/data/secure_storage_servis.dart';
 import 'package:sergio_pizza/domain/models/response_api.dart';
 import 'package:sergio_pizza/domain/repository/user_repository.dart';
 
@@ -16,19 +18,27 @@ class DioClient {
       ..options.receiveTimeout = const Duration(seconds: 35);
   }
 
-  Options getOptions() {
-    Logger.i('getOptions token >>>>> ${Get.find<UserRepository>().token}');
-    return Options(
-      headers: {
-        'Content-type': 'application/json',
-        'User-Agent': 'api-mobile-rent',
-        ...Get.isRegistered<UserRepository>() &&
-                Get.find<UserRepository>().isReg &&
-                Get.find<UserRepository>().token.isNotEmpty
-            ? {'Authorization': 'Bearer ${Get.find<UserRepository>().token}'}
-            : {},
-      },
-    );
+  Future<Options> getOptions() async {
+    // Получаем Device ID
+    final deviceId = await DeviceService.getDeviceId();
+    final token = await SecureStorageService().getToken() ?? '';
+    Logger.i('deviceId >>>>> $deviceId token >>>>> $token');
+    // Базовые заголовки
+    Map<String, String> headers = {
+      'Content-type': 'application/json',
+      'X-USER-DEVICE-ID': deviceId,
+      'Accept': 'application/json',
+    };
+
+    // Добавляем токен только если он есть
+    if (Get.isRegistered<UserRepository>() &&
+        Get.find<UserRepository>().isReg &&
+        Get.find<UserRepository>().token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer ${Get.find<UserRepository>().token}';
+      headers['X-USER-TOKEN'] = Get.find<UserRepository>().token;
+    }
+
+    return Options(headers: headers);
   }
 
   Future<ResponseApi> get(
@@ -42,7 +52,7 @@ class DioClient {
       final response = await dio.get(
         url,
         queryParameters: queryParameters,
-        options: getOptions(),
+        options: await getOptions(),
         cancelToken: cancelToken,
         onReceiveProgress: onReceiveProgress,
       );
@@ -65,7 +75,7 @@ class DioClient {
       final response = await dio.post(
         url,
         data: data,
-        options: getOptions(),
+        options: await getOptions(),
         queryParameters: queryParameters,
         cancelToken: cancelToken,
         onSendProgress: onSendProgress,
@@ -90,7 +100,7 @@ class DioClient {
         url,
         data: data,
         queryParameters: queryParameters,
-        options: getOptions(),
+        options: await getOptions(),
         cancelToken: cancelToken,
         onSendProgress: onSendProgress,
         onReceiveProgress: onReceiveProgress,
@@ -114,7 +124,7 @@ class DioClient {
         url,
         data: data,
         queryParameters: queryParameters,
-        options: getOptions(),
+        options: await getOptions(),
         cancelToken: cancelToken,
       );
       return processResponse(response.data, url);

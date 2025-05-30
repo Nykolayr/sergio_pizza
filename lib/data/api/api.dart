@@ -1,7 +1,7 @@
 import 'package:sergio_pizza/data/api/dio_client.dart';
 import 'package:get/get.dart';
 import 'package:sergio_pizza/domain/models/response_api.dart';
-import 'package:sergio_pizza/domain/models/user.dart';
+import 'package:sergio_pizza/domain/repository/user_repository.dart';
 
 class Api {
   final DioClient dio = Get.find<DioClient>();
@@ -12,19 +12,26 @@ class Api {
   }
 
   ///  отправка телефона для авторизации
-  Future<ResponseApi> tryLogin({
+  Future<ResponseApi> tryLoginApi({
     required String phone,
   }) async {
-    return await dio.post('/tryLogin', data: {
-      'phone': phone,
-    });
+    return await dio.post('/tryLogin', data: {'phone': phone});
   }
 
   /// апдейт пользователя
   Future<ResponseApi> updateUser({
-    required User user,
+    required String password,
+    required String name,
+    required String birthDate,
+    required String email,
   }) async {
-    return await dio.post('/user', data: user.toJsonApi());
+    return await dio.post('/setUser', data: {
+      "name": name,
+      "email": email,
+      "birthdate": birthDate,
+      "password": password,
+      "password_confirmation": password,
+    });
   }
 
   /// регистрация
