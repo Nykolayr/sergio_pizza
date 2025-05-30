@@ -49,9 +49,8 @@ class RegPhoneEvent extends AuthEvent {
 
 /// авторизация по телефону
 class AuthPhoneEvent extends AuthEvent {
-  final String phone;
   final String password;
-  const AuthPhoneEvent({required this.phone, required this.password});
+  const AuthPhoneEvent({required this.password});
 }
 
 /// очистка ошибки

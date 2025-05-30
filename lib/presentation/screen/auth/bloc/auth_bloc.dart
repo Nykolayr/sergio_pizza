@@ -162,9 +162,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(state.copyWith(status: AuthStatus.loading));
-    final cleanedPhone = _cleanPhoneNumber(event.phone);
+
     final answer = await repo.authPhone(
-      phone: cleanedPhone,
+      phone: state.phone,
       password: event.password,
     );
 
@@ -173,7 +173,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         state.copyWith(
           user: repo.user,
           status: AuthStatus.successEnter,
-          phone: cleanedPhone,
+          phone: state.phone,
         ),
       );
     } else {

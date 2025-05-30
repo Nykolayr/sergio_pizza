@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 
 class AppDateField extends StatelessWidget {

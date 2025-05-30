@@ -131,7 +131,6 @@ class UserRepository extends GetxController {
   Future<String> sendCode({required String phone, required String code}) async {
     final answer = await Api().checkCode(phone: phone, code: code);
     if (answer is ResSuccess) {
-      Logger.i('checkCode answer >>>>> ${answer.data}');
       if (answer.data['data'] != null && answer.data['data']['token'] != null) {
         token = answer.data['data']['token'];
 
@@ -173,14 +172,16 @@ class UserRepository extends GetxController {
   }) async {
     final answer = await Api().authPhone(phone: phone, password: password);
     if (answer is ResSuccess) {
-      token = answer.data['token'];
-      await SecureStorageService().saveToken(token);
-      final resultUser = await loadUserFromApi();
-      if (resultUser.isNotEmpty) {
-        await saveUserToLocal();
-      } else {
-        await SecureStorageService().deleteToken();
-        return resultUser;
+      if (answer.data['data'] != null && answer.data['data']['token'] != null) {
+        token = answer.data['data']['token'];
+        await SecureStorageService().saveToken(token);
+        final resultUser = await loadUserFromApi();
+        if (resultUser.isNotEmpty) {
+          await saveUserToLocal();
+        } else {
+          await SecureStorageService().deleteToken();
+          return resultUser;
+        }
       }
       return '';
     } else if (answer is ResError) {
