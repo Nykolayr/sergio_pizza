@@ -38,7 +38,7 @@ class _SplashPageState extends State<SplashPage>
       if (isReg) {
         router.go('/main');
       } else {
-        router.go('/sms');
+        router.go('/auth');
       }
     } catch (e) {
       Logger.e('initializeApp error: $e');

@@ -2,26 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
 import 'package:sergio_pizza/presentation/screen/auth/bloc/auth_bloc.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 import 'package:sergio_pizza/presentation/widgets/buttons.dart';
 import 'package:flutter/gestures.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
-class AuthSmsPage extends StatefulWidget {
-  const AuthSmsPage({super.key});
+class AuthPassPage extends StatefulWidget {
+  const AuthPassPage({super.key});
 
   @override
-  State<AuthSmsPage> createState() => AuthSmsPageState();
+  State<AuthPassPage> createState() => AuthPassPageState();
 }
 
-class AuthSmsPageState extends State<AuthSmsPage> {
-  final phoneController = TextEditingController();
-  final maskFormatter = MaskTextInputFormatter(
-    mask: '+7 (###) ###-##-##',
-    filter: {"#": RegExp(r'[0-9]')},
-  );
+class AuthPassPageState extends State<AuthPassPage> {
+  final passController = TextEditingController();
+
   AuthBloc bloc = Get.find<AuthBloc>();
   bool isEnable = false;
 
@@ -32,7 +28,7 @@ class AuthSmsPageState extends State<AuthSmsPage> {
 
   @override
   void dispose() {
-    phoneController.dispose();
+    passController.dispose();
     super.dispose();
   }
 
@@ -55,7 +51,7 @@ class AuthSmsPageState extends State<AuthSmsPage> {
           buildWhen: (previous, current) {
             if (previous.status != current.status &&
                 current.status.isSuccessEnter) {
-              context.goNamed('ввод кода');
+              // context.goNamed('ввод кода');
             }
             return true;
           },
@@ -92,37 +88,6 @@ class AuthSmsPageState extends State<AuthSmsPage> {
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: Text('🇷🇺',
                                       style: TextStyle(fontSize: 18)),
-                                ),
-                                Expanded(
-                                  child: TextField(
-                                    controller: phoneController,
-                                    inputFormatters: [maskFormatter],
-                                    keyboardType: TextInputType.phone,
-                                    decoration: InputDecoration(
-                                      hintText: '+7 (___) ___-__-__',
-                                      hintStyle: TextStyle(
-                                        color: Color(0xFFAAB2C9),
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      border: InputBorder.none,
-                                      isCollapsed: true,
-                                      contentPadding: EdgeInsets.zero,
-                                    ),
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        isEnable = maskFormatter
-                                                .getUnmaskedText()
-                                                .length ==
-                                            10;
-                                      });
-                                    },
-                                  ),
                                 ),
                               ],
                             ),
@@ -168,11 +133,12 @@ class AuthSmsPageState extends State<AuthSmsPage> {
                         Column(
                           children: [
                             ButtonWide(
-                              text: 'Отправить код',
+                              text: 'Войти',
                               isEnable: isEnable,
                               onPressed: () {
-                                bloc.add(SendAcceptEvent(
-                                    phone: phoneController.text));
+                                FocusScope.of(context).unfocus();
+                                bloc.add(
+                                    TryLoginEvent(phone: passController.text));
                               },
                             ),
                             const Gap(60),

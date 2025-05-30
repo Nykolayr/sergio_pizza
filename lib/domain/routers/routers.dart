@@ -2,9 +2,8 @@ import 'package:go_router/go_router.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:sergio_pizza/common/function.dart';
 import 'package:sergio_pizza/presentation/screen/auth/auth_code_page.dart';
-import 'package:sergio_pizza/presentation/screen/auth/auth_page.dart';
-import 'package:sergio_pizza/presentation/screen/auth/auth_reg_page.dart';
-import 'package:sergio_pizza/presentation/screen/auth/auth_sms_page.dart';
+import 'package:sergio_pizza/presentation/screen/auth/auth_pass_page.dart';
+import 'package:sergio_pizza/presentation/screen/auth/auth_enter_page.dart';
 import 'package:sergio_pizza/presentation/screen/auth/user_reg_page.dart';
 import 'package:sergio_pizza/presentation/screen/main/main_page.dart';
 import 'package:sergio_pizza/presentation/screen/splash/splash_page.dart';
@@ -26,15 +25,25 @@ final GoRouter router = GoRouter(
       ),
     ),
     GoRoute(
-      name: 'авторизация по смс',
-      path: '/sms',
+      name: 'авторизация',
+      path: '/auth',
       pageBuilder: (context, state) => buildPageWithDefaultTransition(
         type: PageTransitionType.leftToRight,
         context: context,
         state: state,
-        child: const AuthSmsPage(),
+        child: const AuthEnterPage(),
       ),
       routes: <GoRoute>[
+        GoRoute(
+          name: 'ввод пароля',
+          path: '/pass',
+          pageBuilder: (context, state) => buildPageWithDefaultTransition(
+            type: PageTransitionType.rightToLeft,
+            context: context,
+            state: state,
+            child: const AuthPassPage(),
+          ),
+        ),
         GoRoute(
           name: 'ввод кода',
           path: '/code',
@@ -59,28 +68,28 @@ final GoRouter router = GoRouter(
         ),
       ],
     ),
-    GoRoute(
-      name: 'авторизация',
-      path: '/auth',
-      pageBuilder: (context, state) => buildPageWithDefaultTransition(
-        type: PageTransitionType.leftToRight,
-        context: context,
-        state: state,
-        child: const AuthPage(),
-      ),
-      routes: <GoRoute>[
-        GoRoute(
-          name: 'Регистрация пользователя',
-          path: '/auth/reg',
-          pageBuilder: (context, state) => buildPageWithDefaultTransition(
-            type: PageTransitionType.rightToLeft,
-            context: context,
-            state: state,
-            child: const AuthRegPage(),
-          ),
-        ),
-      ],
-    ),
+    // GoRoute(
+    //   name: 'авторизация',
+    //   path: '/auth',
+    //   pageBuilder: (context, state) => buildPageWithDefaultTransition(
+    //     type: PageTransitionType.leftToRight,
+    //     context: context,
+    //     state: state,
+    //     child: const AuthPage(),
+    //   ),
+    //   routes: <GoRoute>[
+    //     GoRoute(
+    //       name: 'Регистрация пользователя',
+    //       path: '/auth/reg',
+    //       pageBuilder: (context, state) => buildPageWithDefaultTransition(
+    //         type: PageTransitionType.rightToLeft,
+    //         context: context,
+    //         state: state,
+    //         child: const AuthRegPage(),
+    //       ),
+    //     ),
+    //   ],
+    // ),
     GoRoute(
       name: 'Общая',
       path: '/main',

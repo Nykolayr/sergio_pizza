@@ -14,19 +14,52 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SendAcceptEvent>(_onSendAcceptEvent);
     on<SendCodeEvent>(_onSendCodeEvent);
     on<UpdateUserEvent>(_onUpdateUserEvent);
+    on<TryLoginEvent>(_onTryLoginEvent);
   }
 
-  /// очистка номера телефона от символов форматирования
-  String _cleanPhoneNumber(String phone) {
-    if (phone.isEmpty) return phone;
-    // Удаляем все символы кроме цифр
-    String cleaned = phone.replaceAll(RegExp(r'[^\d]'), '');
-    // Если номер начинается с 7, оставляем как есть
-    // Если начинается с 8, заменяем на 7
-    if (cleaned.startsWith('8') && cleaned.length == 11) {
-      cleaned = '7${cleaned.substring(1)}';
+  /// отправка телефона для авторизации
+  Future<void> _onTryLoginEvent(
+    TryLoginEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+    String phone = state.phone;
+    if (event.phone.isNotEmpty) {
+      phone = _cleanPhoneNumber(event.phone);
     }
-    return cleaned;
+    final answer = await repo.tryLogin(phone: phone);
+    emit(state.copyWith(phone: phone));
+    if (answer['error'] == null) {
+      if (answer['status'] == 201) {
+        final smsCode = _extractSmsCode(answer);
+        emit(state.copyWith(
+            status: AuthStatus.successEnter,
+            code: smsCode ?? '',
+            phone: phone));
+      } else if (answer['status'] == 202) {
+        emit(state.copyWith(status: AuthStatus.successTryLogin));
+      }
+    } else {
+      if (answer['error'] == 'Номер телефона не подтверждён') {
+        emit(state.copyWith(status: AuthStatus.loading));
+        final sendAcceptAnswer = await repo.sendAccept(phone: phone);
+        if (sendAcceptAnswer['error'] == null) {
+          final smsCode = _extractSmsCode(sendAcceptAnswer);
+
+          if (smsCode != null) {
+            emit(state.copyWith(
+              status: AuthStatus.successEnter,
+              phone: phone,
+              code: smsCode,
+            ));
+          }
+        } else {
+          clearErrorWithShow(emit, sendAcceptAnswer['error'] as String);
+        }
+      } else {
+        clearErrorWithShow(emit, answer['error'] as String);
+      }
+    }
   }
 
   /// апдейт пользователя
@@ -49,7 +82,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (answer.isEmpty) {
       emit(state.copyWith(status: AuthStatus.successCode));
     } else {
-      emit(state.copyWith(error: answer, status: AuthStatus.error));
+      clearErrorWithShow(emit, answer);
     }
   }
 
@@ -64,10 +97,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       phone = _cleanPhoneNumber(event.phone);
     }
     final answer = await repo.sendAccept(phone: phone);
-    if (answer.isEmpty) {
-      emit(state.copyWith(status: AuthStatus.successAccept, phone: phone));
+    if (answer['error'] == null) {
+      final smsCode = _extractSmsCode(answer);
+
+      emit(state.copyWith(
+        status: AuthStatus.successAccept,
+        phone: phone,
+        code: smsCode ?? '',
+      ));
     } else {
-      emit(state.copyWith(error: answer, status: AuthStatus.error));
+      clearErrorWithShow(emit, answer['error'] as String);
     }
   }
 
@@ -90,11 +129,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(state.copyWith(
             status: AuthStatus.successRegister, phone: cleanedPhone));
       } else {
-        emit(state.copyWith(error: answer, status: AuthStatus.error));
+        clearErrorWithShow(emit, answer);
       }
     } else {
-      emit(state.copyWith(
-          error: 'Пароли не совпадают', status: AuthStatus.error));
+      clearErrorWithShow(emit, 'Пароли не совпадают');
     }
   }
 
@@ -119,9 +157,42 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         ),
       );
     } else {
-      emit(state.copyWith(error: answer, status: AuthStatus.error));
-      await Future.delayed(const Duration(seconds: 4));
-      emit(state.copyWith(error: ''));
+      clearErrorWithShow(emit, answer);
     }
+  }
+
+  /// очистка ошибки и показа ошибки
+  Future<void> clearErrorWithShow(Emitter<AuthState> emit, String error) async {
+    emit(state.copyWith(error: error, status: AuthStatus.error));
+    await Future.delayed(const Duration(seconds: 5));
+    emit(state.copyWith(error: ''));
+  }
+
+  /// очистка номера телефона от символов форматирования
+  String _cleanPhoneNumber(String phone) {
+    if (phone.isEmpty) return phone;
+    // Удаляем все символы кроме цифр
+    String cleaned = phone.replaceAll(RegExp(r'[^\d]'), '');
+    // Если номер начинается с 7, оставляем как есть
+    // Если начинается с 8, заменяем на 7
+    if (cleaned.startsWith('8') && cleaned.length == 11) {
+      cleaned = '7${cleaned.substring(1)}';
+    }
+    return cleaned;
+  }
+
+  /// извлечение SMS кода из ответа сервера
+  String? _extractSmsCode(Map<String, dynamic> response) {
+    // Проверяем в сообщении (message)
+    if (response['message'] != null) {
+      final message = response['message'] as String;
+      final regex = RegExp(r'sms code: (\d+)');
+      final match = regex.firstMatch(message);
+      if (match != null) {
+        return match.group(1);
+      }
+    }
+
+    return null;
   }
 }

@@ -7,6 +7,12 @@ class AuthEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// отправка телефона для авторизации
+class TryLoginEvent extends AuthEvent {
+  final String phone;
+  const TryLoginEvent({required this.phone});
+}
+
 /// апдейт пользователя
 class UpdateUserEvent extends AuthEvent {
   final User user;

@@ -7,6 +7,7 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:sergio_pizza/presentation/screen/auth/bloc/auth_bloc.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 import 'package:sergio_pizza/presentation/widgets/buttons.dart';
+import 'dart:async';
 
 class AuthCodePage extends StatefulWidget {
   const AuthCodePage({super.key});
@@ -22,10 +23,16 @@ class AuthCodePageState extends State<AuthCodePage> {
   static const int fieldsCount = 4;
   static const double gap = 15.0;
 
+  // Переменные для таймера
+  Timer? _timer;
+  int _remainingSeconds = 0;
+  bool _canResendCode = true;
+
   @override
   void initState() {
     super.initState();
-    // Размеры экрана будут вычислены в build методе через MediaQuery
+    // Запускаем таймер при входе на страницу
+    _startTimer();
   }
 
   void _calculateFieldWidth(BuildContext context) {
@@ -34,8 +41,33 @@ class AuthCodePageState extends State<AuthCodePage> {
     fieldWidth = (screenWidth - 40 - totalGaps) / fieldsCount;
   }
 
+  void _startTimer() {
+    setState(() {
+      _remainingSeconds = 60;
+      _canResendCode = false;
+    });
+
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _canResendCode = true;
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  void _onResendCode() {
+    bloc.add(SendAcceptEvent(phone: ''));
+    _startTimer();
+  }
+
   @override
   void dispose() {
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -53,7 +85,12 @@ class AuthCodePageState extends State<AuthCodePage> {
           buildWhen: (previous, current) {
             if (previous.status != current.status &&
                 current.status.isSuccessCode) {
-              context.go('/auth/code/reg');
+              context.goNamed('регистрация пользователя');
+            }
+            // Перезапускаем таймер при успешной отправке кода
+            if (previous.status != current.status &&
+                current.status.isSuccessAccept) {
+              _startTimer();
             }
             return true;
           },
@@ -100,7 +137,7 @@ class AuthCodePageState extends State<AuthCodePage> {
                                 ),
                                 //TODO: убрать, как только сделаем бэк
                                 const Gap(20),
-                                Text('Код 5555 для тестов',
+                                Text('Код ${state.code} для тестов',
                                     style: AppText.text14lb),
                                 const Gap(20),
                                 GestureDetector(
@@ -181,11 +218,12 @@ class AuthCodePageState extends State<AuthCodePage> {
                             Column(
                               children: [
                                 ButtonWide(
-                                  text: 'Выслать новый код',
-                                  isEnable: true,
-                                  onPressed: () {
-                                    bloc.add(SendAcceptEvent(phone: ''));
-                                  },
+                                  text: _canResendCode
+                                      ? 'Выслать новый код'
+                                      : 'Повторная отправка через $_remainingSeconds сек',
+                                  isEnable: _canResendCode,
+                                  onPressed:
+                                      _canResendCode ? _onResendCode : () {},
                                 ),
                                 const Gap(20),
                               ],

@@ -49,7 +49,8 @@ class DioExceptions implements Exception {
     }
 
     Logger.e('Ошибка fromDioError  $errorText');
-    showErrorDialog(errorText);
+    // Убираем автоматический показ диалога - пусть приложение само решает
+    // showErrorDialog(errorText);
   }
 
   String handleError(int? statusCode, dynamic error) {
@@ -79,12 +80,17 @@ class DioExceptions implements Exception {
         break;
       case 403:
         errorText = 'Forbidden error 403';
-        if (error['error'] != null) {
-          errorText = error['error'];
+        if (error is Map) {
+          if (error['message'] != null) {
+            errorText = error['message'];
+          } else if (error['error'] != null) {
+            errorText = error['error'];
+          }
         }
+        break;
       case 404:
         errorText = 'ошибка 404, страница не найдена';
-
+        break;
       case 422:
         if (error is Map && error['errors'] is Map) {
           final errors = error['errors'] as Map;
@@ -104,7 +110,8 @@ class DioExceptions implements Exception {
       default:
         errorText = 'Oops something went wrong';
     }
-    showErrorDialog(errorText);
+    // Убираем автоматический показ диалога - пусть приложение само решает
+    // showErrorDialog(errorText);
     return errorText;
   }
 

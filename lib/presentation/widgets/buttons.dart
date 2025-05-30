@@ -33,8 +33,7 @@ class ButtonWide extends StatelessWidget {
           child: Text(
             text,
             style: AppText.text14sb.copyWith(
-              color: isEnable ? AppColor.whitefon : AppColor.textBlue,
-            ),
+                color: isEnable ? AppColor.whitefon : AppColor.blueLight),
           ),
         ),
       ),

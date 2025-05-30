@@ -112,15 +112,26 @@ class UserRepository extends GetxController {
     return '';
   }
 
+  /// отправка телефона для авторизации
+  Future<Map<String, dynamic>> tryLogin({required String phone}) async {
+    final answer = await Api().tryLogin(phone: phone);
+    if (answer is ResSuccess) {
+      return answer.data;
+    } else if (answer is ResError) {
+      return {'error': answer.errorMessage};
+    }
+    return {};
+  }
+
   /// отправка запроса на код в смс
-  Future<String> sendAccept({required String phone}) async {
+  Future<Map<String, dynamic>> sendAccept({required String phone}) async {
     final answer = await Api().sendAccept(phone: phone);
     if (answer is ResSuccess) {
-      return '';
+      return answer.data;
     } else if (answer is ResError) {
-      return answer.errorMessage;
+      return {'error': answer.errorMessage};
     }
-    return '';
+    return {};
   }
 
   /// отправка запроса на код в смс

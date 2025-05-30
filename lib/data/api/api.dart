@@ -11,6 +11,15 @@ class Api {
     return await dio.post('/api/mobile/refresh');
   }
 
+  ///  отправка телефона для авторизации
+  Future<ResponseApi> tryLogin({
+    required String phone,
+  }) async {
+    return await dio.post('/tryLogin', data: {
+      'phone': phone,
+    });
+  }
+
   /// апдейт пользователя
   Future<ResponseApi> updateUser({
     required User user,
