@@ -69,9 +69,11 @@ class UserRepository extends GetxController {
   }
 
   Future<void> logout() async {
-    await LocalData().clear();
+    await LocalData.saveJson(
+        json: User.initial().toJson(), key: LocalDataKey.user);
     await SecureStorageService().deleteToken();
     user = User.initial();
+    token = '';
   }
 
   Future<void> deleteAccount() async {
@@ -160,9 +162,11 @@ class UserRepository extends GetxController {
 
   /// Удаление пользователя из локального хранилища и инициализация
   Future clearUser() async {
-    await LocalData().clear();
+    await LocalData.saveJson(
+        json: User.initial().toJson(), key: LocalDataKey.user);
     await SecureStorageService().deleteToken();
     user = User.initial();
+    token = '';
   }
 
   /// Авторизация пользователя
@@ -176,7 +180,7 @@ class UserRepository extends GetxController {
         token = answer.data['data']['token'];
         await SecureStorageService().saveToken(token);
         final resultUser = await loadUserFromApi();
-        if (resultUser.isNotEmpty) {
+        if (resultUser.isEmpty) {
           await saveUserToLocal();
         } else {
           await SecureStorageService().deleteToken();

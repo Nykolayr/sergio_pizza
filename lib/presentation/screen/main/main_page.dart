@@ -25,20 +25,7 @@ class _MainPageState extends State<MainPage> {
               ),
             );
           },
-          mapObjects: [
-            // Пример добавления метки на карту
-            PlacemarkMapObject(
-              mapId: const MapObjectId('placemark'),
-              point: Point(latitude: 55.751244, longitude: 37.618423),
-              icon: PlacemarkIcon.single(
-                PlacemarkIconStyle(
-                  image: BitmapDescriptor.fromAssetImage(
-                      'assets/svg/pickup_point.svg'),
-                  scale: 2,
-                ),
-              ),
-            ),
-          ],
+          mapObjects: const [], // Пустой список - никаких маркеров
         ),
       ],
     ));
