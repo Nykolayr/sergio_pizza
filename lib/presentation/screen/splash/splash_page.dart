@@ -36,7 +36,14 @@ class _SplashPageState extends State<SplashPage>
       // }
 
       if (isReg) {
-        router.go('/main');
+        // Проверяем наличие любого адреса (доставки или самовывоза)
+        final hasAnyAddress = userRepository.hasAnyAddress;
+
+        if (hasAnyAddress) {
+          router.go('/main'); // Переходим на главную, если есть любой адрес
+        } else {
+          router.go('/main/delivery'); // Переходим сразу на выбор адреса
+        }
       } else {
         router.goNamed('авторизация');
       }

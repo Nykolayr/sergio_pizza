@@ -8,6 +8,8 @@ import 'package:sergio_pizza/domain/models/user.dart';
 import 'package:sergio_pizza/domain/routers/routers.dart';
 import 'package:sergio_pizza/data/geolocation_servise.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
+import 'package:sergio_pizza/domain/models/delivery_address.dart';
+import 'package:sergio_pizza/domain/models/pickup_address.dart';
 
 /// репо для юзера
 class UserRepository extends GetxController {
@@ -16,6 +18,9 @@ class UserRepository extends GetxController {
   bool isRefresh = false;
 
   bool get isReg => token.isNotEmpty;
+  bool get hasDeliveryAddress => user.deliveryAddress.isNotEmpty;
+  bool get hasPickupAddress => user.pickupAddress.isNotEmpty;
+  bool get hasAnyAddress => hasDeliveryAddress || hasPickupAddress;
 
   static final UserRepository _instance = UserRepository._internal();
 
@@ -54,8 +59,12 @@ class UserRepository extends GetxController {
       // Получение геопозиции пользователя
       try {
         final position = await GeolocationService.instance.getCurrentPosition();
-        user.point =
-            Point(latitude: position.latitude, longitude: position.longitude);
+        user = user.copyWith(
+          point: Point(
+            latitude: position.latitude,
+            longitude: position.longitude,
+          ),
+        );
       } catch (e) {
         Logger.e('error getCurrentPosition $e');
       }
@@ -233,4 +242,16 @@ class UserRepository extends GetxController {
   }
 
   /// Сохранение истории сессий в локальное хранилище
+
+  /// Сохранение адреса доставки
+  Future<void> setDeliveryAddress(DeliveryAddress address) async {
+    user = user.copyWith(deliveryAddress: address);
+    await saveUserToLocal();
+  }
+
+  /// Сохранение адреса самовывоза
+  Future<void> setPickupAddress(PickupAddress address) async {
+    user = user.copyWith(pickupAddress: address);
+    await saveUserToLocal();
+  }
 }

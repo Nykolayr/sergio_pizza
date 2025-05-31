@@ -1,65 +1,94 @@
-class DeliveryAddress {
-  final String town;
-  final String street;
-  final String house;
+import 'package:equatable/equatable.dart';
+import 'package:yandex_mapkit/yandex_mapkit.dart';
+
+class DeliveryAddress extends Equatable {
+  final String address;
   final String apartment;
   final String entrance;
   final String floor;
   final String intercom;
   final String comment;
-  final double? latitude;
-  final double? longitude;
+  final Point coordinates;
 
-  DeliveryAddress({
-    required this.town,
-    required this.street,
-    required this.house,
+  const DeliveryAddress({
+    required this.address,
     required this.apartment,
     required this.entrance,
     required this.floor,
     required this.intercom,
     required this.comment,
-    this.latitude,
-    this.longitude,
+    required this.coordinates,
   });
 
-  factory DeliveryAddress.init() => DeliveryAddress(
-        town: '',
-        street: '',
-        house: '',
+  factory DeliveryAddress.initial() => DeliveryAddress(
+        address: '',
         apartment: '',
         entrance: '',
         floor: '',
         intercom: '',
         comment: '',
-        latitude: null,
-        longitude: null,
+        coordinates: Point(latitude: 0.0, longitude: 0.0),
       );
 
-  factory DeliveryAddress.fromJson(Map<String, dynamic> json) =>
-      DeliveryAddress(
-        town: json['town'] ?? '',
-        street: json['street'] ?? '',
-        house: json['house'] ?? '',
-        apartment: json['apartment'] ?? '',
-        entrance: json['entrance'] ?? '',
-        floor: json['floor'] ?? '',
-        intercom: json['intercom'] ?? '',
-        comment: json['comment'] ?? '',
-        latitude: (json['latitude'] as num?)?.toDouble(),
-        longitude: (json['longitude'] as num?)?.toDouble(),
-      );
+  factory DeliveryAddress.fromJson(Map<String, dynamic> json) {
+    return DeliveryAddress(
+      address: json['address'] ?? '',
+      apartment: json['apartment'] ?? '',
+      entrance: json['entrance'] ?? '',
+      floor: json['floor'] ?? '',
+      intercom: json['intercom'] ?? '',
+      comment: json['comment'] ?? '',
+      coordinates: Point(
+        latitude: json['latitude'] ?? 0.0,
+        longitude: json['longitude'] ?? 0.0,
+      ),
+    );
+  }
 
-  Map<String, dynamic> toJson() => {
-        'town': town,
-        'street': street,
-        'house': house,
-        'apartment': apartment,
-        'entrance': entrance,
-        'floor': floor,
-        'intercom': intercom,
-        'comment': comment,
-        'latitude': latitude,
-        'longitude': longitude,
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      'address': address,
+      'apartment': apartment,
+      'entrance': entrance,
+      'floor': floor,
+      'intercom': intercom,
+      'comment': comment,
+      'latitude': coordinates.latitude,
+      'longitude': coordinates.longitude,
+    };
+  }
+
+  DeliveryAddress copyWith({
+    String? address,
+    String? apartment,
+    String? entrance,
+    String? floor,
+    String? intercom,
+    String? comment,
+    Point? coordinates,
+  }) {
+    return DeliveryAddress(
+      address: address ?? this.address,
+      apartment: apartment ?? this.apartment,
+      entrance: entrance ?? this.entrance,
+      floor: floor ?? this.floor,
+      intercom: intercom ?? this.intercom,
+      comment: comment ?? this.comment,
+      coordinates: coordinates ?? this.coordinates,
+    );
+  }
+
+  bool get isEmpty => address.isEmpty;
+  bool get isNotEmpty => address.isNotEmpty;
+
+  @override
+  List<Object?> get props => [
+        address,
+        apartment,
+        entrance,
+        floor,
+        intercom,
+        comment,
+        coordinates,
+      ];
 }
