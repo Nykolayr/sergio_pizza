@@ -5,14 +5,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sergio_pizza/domain/routers/routers.dart';
 import 'domain/routers/routers.dart' show router;
-import 'package:yandex_mapkit/yandex_mapkit.dart' as ymap;
-import 'package:yandex_geocoder/yandex_geocoder.dart' as ygeo;
 
 // GlobalKey для доступа к контексту глобально
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
   HttpOverrides.global = MyHttpOverrides();
   runApp(const MyApp());
@@ -88,83 +87,5 @@ class AppLifecycleObserver extends WidgetsBindingObserver {
       case AppLifecycleState.hidden:
         break;
     }
-  }
-}
-
-class YandexMapScreen extends StatefulWidget {
-  const YandexMapScreen({super.key});
-
-  @override
-  State<YandexMapScreen> createState() => _YandexMapScreenState();
-}
-
-class _YandexMapScreenState extends State<YandexMapScreen> {
-  final ygeo.YandexGeocoder geocoder =
-      ygeo.YandexGeocoder(apiKey: 'b5979b78-e513-40f3-9090-4929f3d65324');
-  String? address;
-  ymap.Point? point;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchAddress();
-  }
-
-  Future<void> _searchAddress() async {
-    // Пример прямого геокодинга
-    final response = await geocoder.getGeocode(ygeo.DirectGeocodeRequest(
-      addressGeocode: 'Москва, улица Тверская, 7',
-      lang: ygeo.Lang.ru,
-    ));
-    if (response.firstPoint != null) {
-      setState(() {
-        address = 'Москва, улица Тверская, 7';
-        point = ymap.Point(
-          latitude: response.firstPoint!.lat,
-          longitude: response.firstPoint!.lon,
-        );
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Yandex Map')),
-      body: Stack(
-        children: [
-          ymap.YandexMap(
-            mapObjects: point != null
-                ? [
-                    ymap.PlacemarkMapObject(
-                      mapId: const ymap.MapObjectId('placemark'),
-                      point: point!,
-                      icon: ymap.PlacemarkIcon.single(
-                        ymap.PlacemarkIconStyle(
-                          image: ymap.BitmapDescriptor.fromAssetImage(
-                              'assets/svg/pickup_point.svg'),
-                          scale: 2,
-                        ),
-                      ),
-                    ),
-                  ]
-                : [],
-            onMapCreated: (controller) {},
-          ),
-          if (address != null)
-            Positioned(
-              left: 16,
-              right: 16,
-              top: 16,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text('Адрес: $address'),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 }
