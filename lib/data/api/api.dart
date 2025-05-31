@@ -1,7 +1,6 @@
 import 'package:sergio_pizza/data/api/dio_client.dart';
 import 'package:get/get.dart';
 import 'package:sergio_pizza/domain/models/response_api.dart';
-import 'package:sergio_pizza/domain/repository/user_repository.dart';
 
 class Api {
   final DioClient dio = Get.find<DioClient>();

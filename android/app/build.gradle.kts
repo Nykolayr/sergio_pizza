@@ -55,3 +55,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    implementation("com.yandex.android:maps.mobile:4.6.1-full")  
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.22")  
+}
