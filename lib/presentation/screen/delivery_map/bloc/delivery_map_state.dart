@@ -16,6 +16,7 @@ class DeliveryMapState extends Equatable {
   final List<Establishment> filteredEstablishments;
   final String searchQuery;
   final EstablishmentType? selectedEstablishmentType;
+  final Establishment? selectedEstablishment;
 
   bool get isReg => user.name.isNotEmpty;
   DeliveryType get deliveryType => user.deliveryType;
@@ -36,6 +37,7 @@ class DeliveryMapState extends Equatable {
     required this.filteredEstablishments,
     required this.searchQuery,
     this.selectedEstablishmentType,
+    this.selectedEstablishment,
   });
 
   DeliveryMapState copyWith({
@@ -54,6 +56,7 @@ class DeliveryMapState extends Equatable {
     List<Establishment>? filteredEstablishments,
     String? searchQuery,
     EstablishmentType? Function()? selectedEstablishmentType,
+    Establishment? Function()? selectedEstablishment,
   }) {
     return DeliveryMapState(
       isLoading: isLoading ?? this.isLoading,
@@ -76,6 +79,9 @@ class DeliveryMapState extends Equatable {
       selectedEstablishmentType: selectedEstablishmentType != null
           ? selectedEstablishmentType()
           : this.selectedEstablishmentType,
+      selectedEstablishment: selectedEstablishment != null
+          ? selectedEstablishment()
+          : this.selectedEstablishment,
     );
   }
 
@@ -89,16 +95,17 @@ class DeliveryMapState extends Equatable {
       isPanelExpanded: false,
       tempDeliveryAddress: null,
       userLocation: userRepo.user.deliveryType == DeliveryType.delivery
-          ? userRepo.user.deliveryAddress?.coordinates
+          ? userRepo.user.deliveryAddress.coordinates
           : null,
       detectedAddress: null,
       selectedDeliveryType: userRepo.user.deliveryType,
       errorMessage: '',
       selectedLocation: null,
       remainingMinutes: 50,
-      filteredEstablishments: [],
+      filteredEstablishments: Get.find<MainRepository>().establishments,
       searchQuery: '',
       selectedEstablishmentType: null,
+      selectedEstablishment: null,
     );
   }
 
@@ -119,5 +126,6 @@ class DeliveryMapState extends Equatable {
         filteredEstablishments,
         searchQuery,
         selectedEstablishmentType,
+        selectedEstablishment,
       ];
 }

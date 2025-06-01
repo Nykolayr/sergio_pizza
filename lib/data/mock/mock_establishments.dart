@@ -32,8 +32,8 @@ const List<Map<String, dynamic>> mockEstablishments = [
   {
     'id': '4',
     'address': 'Зеленоград, корпус 1130А',
-    'latitude': 56.013090,
-    'longitude': 37.221325,
+    'latitude': 55.998000,
+    'longitude': 37.185000,
     'type': 'restaurant',
     'working_hours': 'до 23:30',
     'status': 'Временно закрыт',
@@ -42,8 +42,8 @@ const List<Map<String, dynamic>> mockEstablishments = [
   {
     'id': '5',
     'address': 'Зеленоград, корпус 1132',
-    'latitude': 56.013090,
-    'longitude': 37.221325,
+    'latitude': 56.020000,
+    'longitude': 37.240000,
     'type': 'pickup',
     'working_hours': 'до 22:00',
     'status': 'Открыт',

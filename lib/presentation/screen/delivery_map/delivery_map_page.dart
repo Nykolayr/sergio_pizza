@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sergio_pizza/domain/models/delivery_type.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_bloc.dart';
+import 'package:sergio_pizza/presentation/screen/delivery_map/helpers/map_helper.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/button_back.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/delivery_bottom_panel.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/tabs_map.dart';
@@ -23,43 +22,23 @@ class DeliveryMapPage extends StatefulWidget {
 class _DeliveryMapPageState extends State<DeliveryMapPage> {
   DeliveryMapBloc bloc = Get.find<DeliveryMapBloc>();
 
-  // Статическая переменная для кэширования маркера
-  static mapkit.BitmapDescriptor? _cachedMarkerIcon;
-
-  mapkit.BitmapDescriptor? get customMarkerIcon => _cachedMarkerIcon;
-
   @override
   void initState() {
     super.initState();
-    _loadCustomMarker();
+    _loadCustomMarkers();
   }
 
-  Future<void> _loadCustomMarker() async {
-    // Если маркер уже закэширован, используем его
-    if (_cachedMarkerIcon != null) {
-      Logger.i('Используется закэшированная иконка маркера');
-      setState(() {});
-      return;
+  Future<void> _loadCustomMarkers() async {
+    await MapHelper.loadCustomMarkers();
+
+    if (bloc.state.selectedLocation != null) {
+      bloc.add(MapTapped(
+        latitude: bloc.state.selectedLocation!.latitude,
+        longitude: bloc.state.selectedLocation!.longitude,
+      ));
     }
 
-    try {
-      final ByteData data =
-          await rootBundle.load('assets/images/location_marker.png');
-      final Uint8List bytes = data.buffer.asUint8List();
-      _cachedMarkerIcon = mapkit.BitmapDescriptor.fromBytes(bytes);
-      Logger.i('Иконка маркера загружена и закэширована');
-
-      if (bloc.state.selectedLocation != null) {
-        bloc.add(MapTapped(
-          latitude: bloc.state.selectedLocation!.latitude,
-          longitude: bloc.state.selectedLocation!.longitude,
-        ));
-      }
-
-      setState(() {});
-    } catch (e) {
-      Logger.e('Ошибка загрузки иконки: $e');
-    }
+    setState(() {});
   }
 
   @override
@@ -69,8 +48,22 @@ class _DeliveryMapPageState extends State<DeliveryMapPage> {
       body: BlocBuilder<DeliveryMapBloc, DeliveryMapState>(
           bloc: bloc,
           builder: (context, state) {
-            final shouldShowMarker =
-                state.selectedLocation != null && customMarkerIcon != null;
+            // Создаем все маркеры через MapHelper
+            final allMarkers = MapHelper.buildAllMarkers(
+              state,
+              onEstablishmentTap: (establishment) {
+                // Отправляем событие выбора заведения в блок
+                bloc.add(SelectEstablishment(establishment));
+              },
+            );
+
+            // Подгоняем камеру при переключении на самовывоз
+            if (state.selectedDeliveryType == DeliveryType.pickup &&
+                state.filteredEstablishments.isNotEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                MapHelper.fitCameraToShowAllMarkers(state, bloc.mapController);
+              });
+            }
 
             return Stack(
               children: [
@@ -79,37 +72,12 @@ class _DeliveryMapPageState extends State<DeliveryMapPage> {
                   onMapCreated: (controller) async {
                     bloc.mapController = controller;
 
-                    // Устанавливаем начальную позицию на Зеленоград
-                    controller.moveCamera(
-                      mapkit.CameraUpdate.newCameraPosition(
-                        mapkit.CameraPosition(
-                          target: const mapkit.Point(
-                            latitude: 55.994849, // Координаты Зеленограда
-                            longitude: 37.214121,
-                          ),
-                          zoom: 13, // Зум на уровне города
-                        ),
-                      ),
-                    );
+                    // Устанавливаем начальную позицию через MapHelper
+                    MapHelper.setInitialCameraPosition(controller);
 
                     bloc.add(const InitializeMap());
                   },
-                  mapObjects: shouldShowMarker
-                      ? [
-                          mapkit.PlacemarkMapObject(
-                            mapId:
-                                const mapkit.MapObjectId('selected_location'),
-                            point: state.selectedLocation!,
-                            icon: mapkit.PlacemarkIcon.single(
-                              mapkit.PlacemarkIconStyle(
-                                image: customMarkerIcon!,
-                                scale: 1.6,
-                              ),
-                            ),
-                            opacity: 1.0,
-                          ),
-                        ]
-                      : [],
+                  mapObjects: allMarkers,
                   onMapTap: (point) {
                     // Обрабатываем тап только в режиме доставки
                     if (state.selectedDeliveryType == DeliveryType.delivery) {

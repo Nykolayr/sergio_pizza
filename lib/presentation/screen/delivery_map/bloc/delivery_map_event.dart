@@ -144,3 +144,13 @@ class LoadEstablishments extends DeliveryMapEvent {
   @override
   List<Object> get props => [];
 }
+
+// Выбор заведения на карте
+class SelectEstablishment extends DeliveryMapEvent {
+  final Establishment establishment;
+
+  const SelectEstablishment(this.establishment);
+
+  @override
+  List<Object> get props => [establishment];
+}

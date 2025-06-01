@@ -91,6 +91,8 @@ flutter:
     - assets/svg/
     - assets/images/
     - assets/images/location_marker.png
+    - assets/images/cafe_marker_blue.png
+    - assets/images/cafe_marker_red.png
     - assets/fonts/
   fonts:
     - family: ProximaNova

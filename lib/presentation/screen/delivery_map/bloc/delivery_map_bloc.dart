@@ -45,6 +45,35 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     on<ClosePanelEvent>(_onClosePanel);
     on<UpdateUserLocationSilently>(_onUpdateUserLocationSilently);
     on<LoadEstablishments>(_onLoadEstablishments);
+    on<SelectEstablishment>(_onSelectEstablishment);
+  }
+
+  /// загрузка заведений
+  void _onLoadEstablishments(
+      LoadEstablishments event, Emitter<DeliveryMapState> emit) async {
+    try {
+      final mainRepo = Get.find<MainRepository>();
+      final result = await mainRepo.loadEstablishments();
+
+      if (result.isEmpty) {
+        // Успешная загрузка
+        Logger.i('Загружено заведений: ${mainRepo.establishments.length}');
+        emit(state.copyWith(
+          filteredEstablishments: mainRepo.establishments,
+          error: '',
+        ));
+      } else {
+        // Ошибка загрузки
+        emit(state.copyWith(
+          error: result,
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        error: 'Ошибка загрузки заведений: $e',
+        filteredEstablishments: [],
+      ));
+    }
   }
 
   /// установка ошибки
@@ -85,8 +114,8 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
       _updateGeolocationSilentlyWithoutEmit();
     } else {
       // При переходе на доставку - показываем сохраненный адрес
-      final savedAddress = userRepository.user?.deliveryAddress;
-      if (savedAddress != null && savedAddress.coordinates != null) {
+      final savedAddress = userRepository.user.deliveryAddress;
+      if (savedAddress.coordinates != null) {
         emit(state.copyWith(
           selectedLocation: savedAddress.coordinates,
           tempDeliveryAddress: () => savedAddress,
@@ -217,6 +246,7 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     }
   }
 
+  /// событие обновления адреса доставки
   void _onUpdateDeliveryAddress(
       UpdateDeliveryAddress event, Emitter<DeliveryMapState> emit) {
     // ОПТИМИЗАЦИЯ: Проверяем что адрес действительно изменился
@@ -225,6 +255,7 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     }
   }
 
+  /// событие сохранения адреса доставки
   void _onSaveDeliveryAddress(
       SaveDeliveryAddress event, Emitter<DeliveryMapState> emit) async {
     Logger.i('💾 Сохранение адреса доставки');
@@ -248,12 +279,6 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
         detectedAddress: addressToSave, // Обновляем detectedAddress
         isPanelExpanded: false, // Сворачиваем панель
       ));
-
-      Logger.i('✅ Адрес сохранен в пользователя');
-
-      // ПЕРЕХОД НА ГЛАВНУЮ СТРАНИЦУ
-      // Здесь должен быть вызов навигации на главную
-      // router.go('/main'); или аналогичный код
     }
   }
 
@@ -296,9 +321,9 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
   Future<void> _onInitializeMap(
       InitializeMap event, Emitter<DeliveryMapState> emit) async {
     // Проверяем есть ли сохраненный адрес доставки у пользователя
-    final savedAddress = userRepository.user?.deliveryAddress;
+    final savedAddress = userRepository.user.deliveryAddress;
 
-    if (savedAddress != null && savedAddress.address.isNotEmpty) {
+    if (savedAddress.address.isNotEmpty) {
       // Если есть сохраненный адрес - используем его, геолокацию НЕ запрашиваем
       Logger.i('📋 Найден сохраненный адрес, пропускаем геолокацию');
 
@@ -687,27 +712,19 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     ));
   }
 
-  /// загрузка заведений
-  void _onLoadEstablishments(
-      LoadEstablishments event, Emitter<DeliveryMapState> emit) async {
-    try {
-      final mainRepo = Get.find<MainRepository>();
-      final result = await mainRepo.loadEstablishments();
-
-      if (result.isEmpty) {
-        // Успешная загрузка
-        emit(state.copyWith(
-          filteredEstablishments: mainRepo.establishments,
-          error: '',
-        ));
-      } else {
-        // Ошибка загрузки
-        emit(state.copyWith(
-          error: result,
-        ));
-      }
-    } catch (e) {
-      emit(state.copyWith(error: 'Ошибка загрузки заведений: $e'));
+  /// выбор заведения на карте
+  void _onSelectEstablishment(
+      SelectEstablishment event, Emitter<DeliveryMapState> emit) {
+    // Если нажали на уже выбранное заведение - убираем выделение
+    if (state.selectedEstablishment?.id == event.establishment.id) {
+      emit(state.copyWith(
+        selectedEstablishment: () => null,
+      ));
+    } else {
+      // Выбираем новое заведение
+      emit(state.copyWith(
+        selectedEstablishment: () => event.establishment,
+      ));
     }
   }
 }
