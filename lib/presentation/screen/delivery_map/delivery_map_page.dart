@@ -63,6 +63,7 @@ class _DeliveryMapPageState extends State<DeliveryMapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: BlocBuilder<DeliveryMapBloc, DeliveryMapState>(
           bloc: bloc,
           builder: (context, state) {

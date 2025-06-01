@@ -11,9 +11,56 @@ import 'package:sergio_pizza/presentation/widgets/buttons.dart';
 import 'package:sergio_pizza/presentation/widgets/custom_text_field.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/address_text_field.dart';
+import 'dart:async';
 
-class DeliveryBottomPanel extends StatelessWidget {
+class DeliveryBottomPanel extends StatefulWidget {
   const DeliveryBottomPanel({super.key});
+
+  @override
+  State<DeliveryBottomPanel> createState() => _DeliveryBottomPanelState();
+}
+
+class _DeliveryBottomPanelState extends State<DeliveryBottomPanel>
+    with WidgetsBindingObserver {
+  double keyboardHeight = 0;
+  Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+
+    // Отменяем предыдущий таймер
+    _debounceTimer?.cancel();
+
+    // Устанавливаем новый таймер с задержкой
+    _debounceTimer = Timer(const Duration(milliseconds: 100), () {
+      final bottomInset = WidgetsBinding
+          .instance.platformDispatcher.views.first.viewInsets.bottom;
+      final newKeyboardHeight = bottomInset /
+          WidgetsBinding
+              .instance.platformDispatcher.views.first.devicePixelRatio;
+
+      // Обновляем только если изменение значительное (больше 10 пикселей)
+      if ((newKeyboardHeight - keyboardHeight).abs() > 10) {
+        setState(() {
+          keyboardHeight = newKeyboardHeight;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,35 +106,88 @@ class DeliveryBottomPanel extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // Крестик закрытия (показываем только когда панель развернута)
-
-                if (isExpanded) ...[
-                  const HandleLine(),
-                  CloseIcon(
-                    onPressed: () {
-                      bloc.add(const ClearDeliveryAddress());
-                    },
-                  ),
-                ],
-
-                // Прокручиваемый контент
+                // ВСЯ верхняя область с GestureDetector (кроме кнопки)
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: state.user.deliveryType == DeliveryType.delivery
-                        ? _buildDeliveryContent(state, bloc)
-                        : _buildPickupContent(state, bloc),
+                  child: GestureDetector(
+                    onPanUpdate: (details) {
+                      // Отслеживаем направление свайпа
+                      if (details.delta.dy < -5) {
+                        // Свайп вверх - разворачиваем панель
+                        if (!isExpanded) {
+                          bloc.add(const DeliverHerePressed());
+                        }
+                      } else if (details.delta.dy > 5) {
+                        // Свайп вниз - сворачиваем панель
+                        if (isExpanded) {
+                          bloc.add(const ClosePanelEvent());
+                        }
+                      }
+                    },
+                    // Добавляем поведение для конкуренции с ScrollView
+                    behavior: HitTestBehavior.translucent,
+                    child: Column(
+                      children: [
+                        // HandleLine только в развернутом состоянии
+                        if (isExpanded) ...[
+                          const HandleLine(),
+                          CloseIcon(
+                            onPressed: () {
+                              bloc.add(const ClosePanelEvent());
+                            },
+                          ),
+                        ],
+
+                        // Прокручиваемый контент
+                        Expanded(
+                          child: NotificationListener<ScrollNotification>(
+                            onNotification: (scrollNotification) {
+                              // Если скролл в самом верху или внизу - разрешаем свайпы панели
+                              if (scrollNotification
+                                  is ScrollUpdateNotification) {
+                                final scrollPosition =
+                                    scrollNotification.metrics.pixels;
+
+                                // В самом верху и свайп вниз - сворачиваем панель
+                                if (scrollPosition <= 0 &&
+                                    scrollNotification.scrollDelta! > 0 &&
+                                    isExpanded) {
+                                  bloc.add(const ClosePanelEvent());
+                                  return true;
+                                }
+                              }
+                              return false;
+                            },
+                            child: SingleChildScrollView(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: state.user.deliveryType ==
+                                      DeliveryType.delivery
+                                  ? _buildDeliveryContent(state, bloc)
+                                  : _buildPickupContent(state, bloc),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
-                // Кнопка всегда внизу
+                // Кнопка с отступом для клавиатуры
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.only(
                     left: 16,
                     right: 16,
                     top: 16,
-                    bottom: 16 + MediaQuery.of(context).padding.bottom,
+                    bottom: keyboardHeight > 0
+                        ? 16 // Когда клавиатура открыта - только базовый отступ
+                        : 16 +
+                            MediaQuery.of(context)
+                                .padding
+                                .bottom, // Когда закрыта - добавляем системный отступ
+                  ),
+                  margin: EdgeInsets.only(
+                    bottom: keyboardHeight, // Отступ при появлении клавиатуры
                   ),
                   child: ButtonWide(
                     text: 'Доставить сюда',
@@ -100,7 +200,6 @@ class DeliveryBottomPanel extends StatelessWidget {
                           }
                         });
                       } else {
-                        // Если панель свернута - разворачиваем панель
                         bloc.add(const DeliverHerePressed());
                       }
                     },
