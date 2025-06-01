@@ -9,6 +9,7 @@ class DeliverTextField extends StatelessWidget {
   final int? maxLines;
   final bool numbersOnly;
   final TextInputType? keyboardType;
+  final String? prefixText;
 
   const DeliverTextField({
     super.key,
@@ -18,6 +19,7 @@ class DeliverTextField extends StatelessWidget {
     this.maxLines = 1,
     this.numbersOnly = false,
     this.keyboardType,
+    this.prefixText,
   });
 
   // Конструктор для числовых полей (квартира, подъезд, этаж, домофон)
@@ -28,12 +30,25 @@ class DeliverTextField extends StatelessWidget {
     this.onChanged,
   })  : maxLines = 1,
         numbersOnly = true,
-        keyboardType = TextInputType.number;
+        keyboardType = TextInputType.number,
+        prefixText = null;
 
   // Конструктор для адреса
   const DeliverTextField.address({
     super.key,
     required this.hintText,
+    this.initialValue,
+    this.onChanged,
+  })  : maxLines = 1,
+        numbersOnly = false,
+        keyboardType = TextInputType.streetAddress,
+        prefixText = null;
+
+  // Конструктор для адреса с городом
+  const DeliverTextField.addressWithCity({
+    super.key,
+    required this.hintText,
+    required this.prefixText,
     this.initialValue,
     this.onChanged,
   })  : maxLines = 1,
@@ -48,7 +63,8 @@ class DeliverTextField extends StatelessWidget {
     this.onChanged,
   })  : maxLines = 3,
         numbersOnly = false,
-        keyboardType = TextInputType.multiline;
+        keyboardType = TextInputType.multiline,
+        prefixText = null;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +76,14 @@ class DeliverTextField extends StatelessWidget {
           numbersOnly ? [FilteringTextInputFormatter.digitsOnly] : null,
       decoration: InputDecoration(
         hintText: hintText,
+        prefixText: prefixText != null ? '$prefixText, ' : null,
+        prefixStyle: prefixText != null
+            ? TextStyle(
+                fontSize: 16,
+                color: AppColor.black,
+                fontWeight: FontWeight.w500,
+              )
+            : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColor.greyLight),

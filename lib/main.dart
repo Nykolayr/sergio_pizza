@@ -9,6 +9,9 @@ import 'domain/routers/routers.dart' show router;
 // GlobalKey для доступа к контексту глобально
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+// Глобальная переменная для мока
+bool isMock = true;
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 

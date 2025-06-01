@@ -7,9 +7,6 @@ abstract class DeliveryMapEvent extends Equatable {
   List<Object> get props => [];
 }
 
-/// получение пользователя
-class GetUserEvent extends DeliveryMapEvent {}
-
 /// установка ошибки
 class SetErrorEvent extends DeliveryMapEvent {
   final String error;
@@ -35,14 +32,17 @@ class SelectDeliveryTab extends DeliveryMapEvent {
   const SelectDeliveryTab();
 }
 
+/// выбор таба типа доставки
 class SelectPickupTab extends DeliveryMapEvent {
   const SelectPickupTab();
 }
 
+/// переключение панели
 class TogglePanelExpansion extends DeliveryMapEvent {
   const TogglePanelExpansion();
 }
 
+/// событие нажатия на карту
 class MapTapped extends DeliveryMapEvent {
   final double latitude;
   final double longitude;
@@ -53,6 +53,7 @@ class MapTapped extends DeliveryMapEvent {
   List<Object> get props => [latitude, longitude];
 }
 
+/// событие обновления адреса доставки
 class UpdateDeliveryAddress extends DeliveryMapEvent {
   final DeliveryAddress address;
 
@@ -69,6 +70,7 @@ class SaveDeliveryAddress extends DeliveryMapEvent {
   List<Object> get props => [];
 }
 
+/// событие очистки адреса доставки
 class ClearDeliveryAddress extends DeliveryMapEvent {
   const ClearDeliveryAddress();
 
@@ -82,4 +84,27 @@ class ClearTempDataOnExit extends DeliveryMapEvent {
 
   @override
   List<Object> get props => [];
+}
+
+/// событие получения текущей локации
+class GetCurrentLocation extends DeliveryMapEvent {
+  const GetCurrentLocation();
+
+  @override
+  List<Object> get props => [];
+}
+
+class InitializeMap extends DeliveryMapEvent {
+  const InitializeMap();
+
+  @override
+  List<Object> get props => [];
+}
+
+/// событие нажатия кнопки "Доставить сюда" в свернутом состоянии
+class ExpandDeliveryPanel extends DeliveryMapEvent {
+  const ExpandDeliveryPanel();
+
+  @override
+  List<Object?> get props => [];
 }

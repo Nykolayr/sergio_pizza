@@ -7,6 +7,7 @@ import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/button_bac
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/delivery_bottom_panel.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/tabs_map.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
+import 'package:sergio_pizza/presentation/theme/theme.dart';
 
 class DeliveryMapPage extends StatefulWidget {
   const DeliveryMapPage({super.key});
@@ -33,17 +34,36 @@ class _DeliveryMapPageState extends State<DeliveryMapPage> {
               children: [
                 YandexMap(
                   onMapCreated: (controller) {
+                    // Сохраняем контроллер для управления картой
+                    bloc.mapController = controller;
+
+                    // Устанавливаем начальную позицию карты
                     controller.moveCamera(
                       CameraUpdate.newCameraPosition(
                         CameraPosition(
-                          target:
-                              Point(latitude: 55.751244, longitude: 37.618423),
+                          target: Point(
+                              latitude: 55.9929,
+                              longitude: 37.2107), // Зеленоград
                           zoom: 15,
                         ),
                       ),
                     );
                   },
-                  mapObjects: const [],
+                  mapObjects: state.userLocation != null
+                      ? [
+                          PlacemarkMapObject(
+                            mapId: const MapObjectId('user_location'),
+                            point: state.userLocation!,
+                            icon: PlacemarkIcon.single(
+                              PlacemarkIconStyle(
+                                image: BitmapDescriptor.fromAssetImage(
+                                    'assets/images/user_marker.png'),
+                                scale: 0.5,
+                              ),
+                            ),
+                          ),
+                        ]
+                      : [],
                   onMapTap: (point) {
                     // Отправляем событие в блок при нажатии на карту
                     bloc.add(MapTapped(
@@ -71,6 +91,36 @@ class _DeliveryMapPageState extends State<DeliveryMapPage> {
                   child: const TabsMap(),
                 ),
                 const DeliveryBottomPanel(),
+                // Добавляем кнопку геопозиции
+                Positioned(
+                  top: 40,
+                  right: 21,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColor.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColor.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        bloc.add(const GetCurrentLocation());
+                      },
+                      icon: Icon(
+                        Icons.my_location,
+                        color: AppColor.blue,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             );
           }),

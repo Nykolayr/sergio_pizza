@@ -7,6 +7,8 @@ class DeliveryMapState extends Equatable {
   final bool isListChange;
   final bool isPanelExpanded;
   final DeliveryAddress? tempDeliveryAddress;
+  final mapkit.Point? userLocation;
+  final DeliveryAddress? detectedAddress;
 
   bool get isReg => user.name.isNotEmpty;
   DeliveryType get deliveryType => user.deliveryType;
@@ -18,6 +20,8 @@ class DeliveryMapState extends Equatable {
     required this.isListChange,
     required this.isPanelExpanded,
     this.tempDeliveryAddress,
+    this.userLocation,
+    this.detectedAddress,
   });
 
   DeliveryMapState copyWith({
@@ -27,6 +31,8 @@ class DeliveryMapState extends Equatable {
     bool? isListChange,
     bool? isPanelExpanded,
     DeliveryAddress? Function()? tempDeliveryAddress,
+    mapkit.Point? userLocation,
+    DeliveryAddress? detectedAddress,
   }) {
     return DeliveryMapState(
       isLoading: isLoading ?? this.isLoading,
@@ -37,6 +43,8 @@ class DeliveryMapState extends Equatable {
       tempDeliveryAddress: tempDeliveryAddress != null
           ? tempDeliveryAddress()
           : this.tempDeliveryAddress,
+      userLocation: userLocation ?? this.userLocation,
+      detectedAddress: detectedAddress ?? this.detectedAddress,
     );
   }
 
@@ -47,6 +55,8 @@ class DeliveryMapState extends Equatable {
         isListChange: false,
         isPanelExpanded: false,
         tempDeliveryAddress: null,
+        userLocation: null,
+        detectedAddress: null,
       );
 
   @override
@@ -57,5 +67,7 @@ class DeliveryMapState extends Equatable {
         isListChange,
         isPanelExpanded,
         tempDeliveryAddress,
+        userLocation,
+        detectedAddress,
       ];
 }

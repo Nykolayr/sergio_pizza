@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_bloc.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 import 'package:sergio_pizza/domain/models/delivery_type.dart';
+import 'package:sergio_pizza/domain/models/delivery_address.dart';
 import 'package:sergio_pizza/presentation/widgets/buttons.dart';
 import 'package:sergio_pizza/presentation/widgets/custom_text_field.dart';
 import 'package:go_router/go_router.dart';
@@ -110,14 +111,21 @@ class DeliveryBottomPanel extends StatelessWidget {
                   ),
                   child: ButtonWide(
                     text: 'Доставить сюда',
-                    isEnable: state.tempDeliveryAddress != null &&
-                        state.tempDeliveryAddress!.address.isNotEmpty,
                     onPressed: () {
-                      bloc.add(const SaveDeliveryAddress());
-                      // Добавляем навигацию здесь
-                      Future.delayed(const Duration(milliseconds: 100), () {
-                        context.go('/main');
-                      });
+                      if (state.tempDeliveryAddress != null) {
+                        // Если панель развернута - сохраняем и закрываем карту
+                        bloc.add(const SaveDeliveryAddress());
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          context.go('/main');
+                        });
+                      } else {
+                        // Если панель свернута - разворачиваем панель
+                        final addressToExpand = state.detectedAddress ??
+                            DeliveryAddress.empty().copyWith(
+                              city: 'Зеленоград',
+                            );
+                        bloc.add(UpdateDeliveryAddress(addressToExpand));
+                      }
                     },
                   ),
                 ),
@@ -130,67 +138,58 @@ class DeliveryBottomPanel extends StatelessWidget {
   }
 
   Widget _buildDeliveryContent(DeliveryMapState state, DeliveryMapBloc bloc) {
-    // Используем временный адрес если есть, иначе показываем свернутое состояние
-    final currentAddress = state.tempDeliveryAddress;
-    final hasAddress = currentAddress != null && currentAddress.isNotEmpty;
+    // Определяем какой адрес показывать
+    final currentAddress = state.tempDeliveryAddress ??
+        state.detectedAddress ??
+        state.user.deliveryAddress;
 
-    if (!hasAddress) {
-      // Свернутое состояние - показываем сохраненный адрес или заглушку
-      final savedAddress = state.user.deliveryAddress;
+    final isExpanded = state.tempDeliveryAddress != null;
+
+    if (!isExpanded) {
+      // Свернутое состояние - показываем адрес с префиксом города
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              Text(
-                'Ваш адрес:',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColor.grey,
-                ),
-              ),
+              Text('Ваш адрес:',
+                  style: TextStyle(fontSize: 14, color: AppColor.grey)),
               const Spacer(),
-              Text(
-                'Доставим в течение 50 минут',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColor.blue,
-                ),
-              ),
+              Text('Доставим в течение 50 минут',
+                  style: TextStyle(fontSize: 12, color: AppColor.blue)),
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColor.greyLight,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              savedAddress.isNotEmpty
-                  ? savedAddress.address
-                  : 'Выберите адрес на карте',
-              style: TextStyle(
-                fontSize: 16,
-                color: savedAddress.isNotEmpty ? AppColor.black : AppColor.grey,
-              ),
-            ),
+
+          // Адрес с префиксом города
+          DeliverTextField.addressWithCity(
+            hintText: 'Адрес доставки',
+            prefixText: currentAddress?.city ?? 'Зеленоград',
+            initialValue: currentAddress?.address ?? '',
+            onChanged: (value) {
+              final baseAddress = currentAddress ??
+                  DeliveryAddress.empty().copyWith(
+                    city: state.detectedAddress?.city ?? 'Зеленоград',
+                  );
+              final updatedAddress = baseAddress.copyWith(address: value);
+              bloc.add(UpdateDeliveryAddress(updatedAddress));
+            },
           ),
         ],
       );
     }
 
-    // Развернутое состояние - все поля для редактирования временного адреса
+    // Развернутое состояние - все поля
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Поле адреса доставки
-        DeliverTextField.address(
+        // Адрес с префиксом города
+        DeliverTextField.addressWithCity(
           hintText: 'Адрес доставки',
-          initialValue: currentAddress!.address,
+          prefixText: currentAddress?.city ?? 'Зеленоград',
+          initialValue: currentAddress?.address ?? '',
           onChanged: (value) {
-            final updatedAddress = currentAddress.copyWith(address: value);
+            final updatedAddress = currentAddress!.copyWith(address: value);
             bloc.add(UpdateDeliveryAddress(updatedAddress));
           },
         ),
@@ -203,10 +202,10 @@ class DeliveryBottomPanel extends StatelessWidget {
             Expanded(
               child: DeliverTextField.number(
                 hintText: 'Номер квартиры',
-                initialValue: currentAddress.apartment,
+                initialValue: currentAddress?.apartment ?? '',
                 onChanged: (value) {
                   final updatedAddress =
-                      currentAddress.copyWith(apartment: value);
+                      currentAddress!.copyWith(apartment: value);
                   bloc.add(UpdateDeliveryAddress(updatedAddress));
                 },
               ),
@@ -215,10 +214,10 @@ class DeliveryBottomPanel extends StatelessWidget {
             Expanded(
               child: DeliverTextField.number(
                 hintText: 'Подъезд',
-                initialValue: currentAddress.entrance,
+                initialValue: currentAddress?.entrance ?? '',
                 onChanged: (value) {
                   final updatedAddress =
-                      currentAddress.copyWith(entrance: value);
+                      currentAddress!.copyWith(entrance: value);
                   bloc.add(UpdateDeliveryAddress(updatedAddress));
                 },
               ),
@@ -234,9 +233,9 @@ class DeliveryBottomPanel extends StatelessWidget {
             Expanded(
               child: DeliverTextField.number(
                 hintText: 'Этаж',
-                initialValue: currentAddress.floor,
+                initialValue: currentAddress?.floor ?? '',
                 onChanged: (value) {
-                  final updatedAddress = currentAddress.copyWith(floor: value);
+                  final updatedAddress = currentAddress!.copyWith(floor: value);
                   bloc.add(UpdateDeliveryAddress(updatedAddress));
                 },
               ),
@@ -245,10 +244,10 @@ class DeliveryBottomPanel extends StatelessWidget {
             Expanded(
               child: DeliverTextField.number(
                 hintText: 'Домофон',
-                initialValue: currentAddress.intercom,
+                initialValue: currentAddress?.intercom ?? '',
                 onChanged: (value) {
                   final updatedAddress =
-                      currentAddress.copyWith(intercom: value);
+                      currentAddress!.copyWith(intercom: value);
                   bloc.add(UpdateDeliveryAddress(updatedAddress));
                 },
               ),
@@ -261,9 +260,9 @@ class DeliveryBottomPanel extends StatelessWidget {
         // Комментарий для курьера
         DeliverTextField.comment(
           hintText: 'Комментарий для курьера',
-          initialValue: currentAddress.comment,
+          initialValue: currentAddress?.comment ?? '',
           onChanged: (value) {
-            final updatedAddress = currentAddress.copyWith(comment: value);
+            final updatedAddress = currentAddress!.copyWith(comment: value);
             bloc.add(UpdateDeliveryAddress(updatedAddress));
           },
         ),
