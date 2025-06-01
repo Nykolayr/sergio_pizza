@@ -102,20 +102,22 @@ class _PickupBottomPanelState extends State<PickupBottomPanel> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Поисковая строка
-                          SearchTextField(
-                            controller: _searchController,
-                            focusNode: _searchFocusNode,
-                            hintText: 'Название или адрес ресторана',
-                            onTap: () {
-                              if (!isExpanded) {
-                                bloc.add(const DeliverHerePressed());
-                              }
-                            },
-                          ),
+                          // Поисковая строка - показываем только если не выбрано заведение
+                          if (state.selectedEstablishment == null)
+                            SearchTextField(
+                              controller: _searchController,
+                              focusNode: _searchFocusNode,
+                              hintText: 'Название или адрес ресторана',
+                              onTap: () {
+                                if (!isExpanded) {
+                                  bloc.add(const DeliverHerePressed());
+                                }
+                              },
+                            ),
 
                           // Контент для развернутого состояния (пока пустой)
-                          if (isExpanded) ...[
+                          if (isExpanded &&
+                              state.selectedEstablishment == null) ...[
                             const Gap(24),
                             Center(
                               child: Text(

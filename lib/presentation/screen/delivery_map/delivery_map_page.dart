@@ -7,6 +7,7 @@ import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_
 import 'package:sergio_pizza/presentation/screen/delivery_map/helpers/map_helper.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/button_back.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/delivery_bottom_panel.dart';
+import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/establishment_info_panel.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/tabs_map.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart' as mapkit;
 import 'package:sergio_pizza/presentation/theme/theme.dart';
@@ -120,7 +121,10 @@ class _DeliveryMapPageState extends State<DeliveryMapPage> {
                 ),
                 state.selectedDeliveryType == DeliveryType.delivery
                     ? const DeliveryBottomPanel()
-                    : const PickupBottomPanel(),
+                    : state.selectedEstablishment != null
+                        ? EstablishmentInfoPanel(
+                            establishment: state.selectedEstablishment!)
+                        : const PickupBottomPanel(),
                 if (state.isLoading)
                   Positioned(
                     top: MediaQuery.of(context).size.height / 2 - 200,
