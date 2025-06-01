@@ -106,5 +106,21 @@ class ExpandDeliveryPanel extends DeliveryMapEvent {
   const ExpandDeliveryPanel();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
+}
+
+/// Событие нажатия кнопки "Доставить сюда"
+class DeliverHerePressed extends DeliveryMapEvent {
+  const DeliverHerePressed();
+
+  @override
+  List<Object> get props => [];
+}
+
+/// Событие закрытия панели
+class ClosePanelEvent extends DeliveryMapEvent {
+  const ClosePanelEvent();
+
+  @override
+  List<Object> get props => [];
 }

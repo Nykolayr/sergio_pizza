@@ -80,8 +80,8 @@ final GoRouter router = GoRouter(
       ),
       routes: <GoRoute>[
         GoRoute(
-          name: 'доставка',
-          path: '/delivery',
+          name: 'карта доставки',
+          path: '/mapdelivery',
           pageBuilder: (context, state) => buildPageWithDefaultTransition(
             type: PageTransitionType.leftToRight,
             context: context,

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:get/get.dart';
+import 'package:sergio_pizza/domain/models/delivery_type.dart';
 import 'package:sergio_pizza/domain/repository/user_repository.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_bloc.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -21,7 +22,7 @@ class _MainPageState extends State<MainPage> {
         title: GestureDetector(
           onTap: () {
             // Переход на смену адреса
-            context.push('/main/delivery');
+            context.goNamed('карта доставки');
           },
           child: Row(
             children: [
@@ -40,30 +41,18 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
       body: Stack(
-        children: [
-          YandexMap(
-            onMapCreated: (controller) {
-              controller.moveCamera(
-                CameraUpdate.newCameraPosition(
-                  CameraPosition(
-                    target: Point(latitude: 55.751244, longitude: 37.618423),
-                    zoom: 15,
-                  ),
-                ),
-              );
-            },
-            mapObjects: const [], // Пустой список - никаких маркеров
-          ),
-        ],
+        children: [],
       ),
     );
   }
 
   String _getDisplayAddress(UserRepository userRepository) {
-    if (userRepository.hasDeliveryAddress) {
-      return userRepository.user.deliveryAddress.address;
-    } else if (userRepository.hasPickupAddress) {
-      return userRepository.user.pickupAddress.address;
+    DeliveryMapBloc bloc = Get.find<DeliveryMapBloc>();
+    DeliveryMapState state = bloc.state;
+    if (state.user.deliveryType == DeliveryType.delivery) {
+      return '${state.user.deliveryAddress.city}, ${state.user.deliveryAddress.address}';
+    } else if (state.user.deliveryType == DeliveryType.pickup) {
+      return state.user.pickupAddress.address;
     } else {
       return 'Выберите адрес доставки';
     }

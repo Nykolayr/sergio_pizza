@@ -1,10 +1,20 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 
-class ButtonBack extends StatelessWidget {
+class ButtonOnMap extends StatelessWidget {
   final VoidCallback onPressed;
-  const ButtonBack({super.key, required this.onPressed});
+  final IconData icon;
+  final Color color;
+  final int angle;
+  const ButtonOnMap({
+    super.key,
+    required this.onPressed,
+    this.icon = Icons.chevron_left,
+    this.color = AppColor.blueDark,
+    this.angle = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +33,15 @@ class ButtonBack extends StatelessWidget {
           ),
         ],
       ),
-      child: IconButton(
-        onPressed: onPressed,
-        icon: const Icon(
-          Icons.chevron_left,
-          color: AppColor.blueDark,
-          size: 25,
+      child: Transform.rotate(
+        angle: angle == 0 ? 0 : math.pi / angle,
+        child: IconButton(
+          onPressed: onPressed,
+          icon: Icon(
+            icon,
+            color: color,
+            size: 25,
+          ),
         ),
       ),
     );

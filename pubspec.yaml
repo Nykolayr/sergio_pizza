@@ -90,6 +90,7 @@ flutter:
     - assets/
     - assets/svg/
     - assets/images/
+    - assets/images/location_marker.png
     - assets/fonts/
   fonts:
     - family: ProximaNova

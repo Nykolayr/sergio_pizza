@@ -76,7 +76,7 @@ class AuthPassPageState extends State<AuthPassPage>
           buildWhen: (previous, current) {
             if (previous.status != current.status &&
                 current.status.isSuccessEnter) {
-              context.goNamed('Общая');
+              context.goNamed('карта доставки');
             }
             return true;
           },

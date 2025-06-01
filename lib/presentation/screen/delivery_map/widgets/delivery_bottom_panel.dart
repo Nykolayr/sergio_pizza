@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_bloc.dart';
+import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/close_icon.dart';
+import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/handle.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 import 'package:sergio_pizza/domain/models/delivery_type.dart';
-import 'package:sergio_pizza/domain/models/delivery_address.dart';
 import 'package:sergio_pizza/presentation/widgets/buttons.dart';
 import 'package:sergio_pizza/presentation/widgets/custom_text_field.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/address_text_field.dart';
 
 class DeliveryBottomPanel extends StatelessWidget {
   const DeliveryBottomPanel({super.key});
@@ -21,11 +24,11 @@ class DeliveryBottomPanel extends StatelessWidget {
       builder: (context, state) {
         // Определяем высоту панели
         double panelHeight;
-        bool isExpanded = state.tempDeliveryAddress != null;
+        bool isExpanded = state.isPanelExpanded;
 
         if (isExpanded) {
           // Если есть временный адрес - максимальная высота
-          panelHeight = MediaQuery.of(context).size.height * 0.8;
+          panelHeight = MediaQuery.of(context).size.height * 0.9;
         } else {
           // Если временного адреса нет - минимальная высота
           panelHeight = 210 + MediaQuery.of(context).padding.bottom;
@@ -56,39 +59,16 @@ class DeliveryBottomPanel extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // Хендлер для свайпа
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(top: 12, bottom: 8),
-                  decoration: BoxDecoration(
-                    color: AppColor.grey,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-
                 // Крестик закрытия (показываем только когда панель развернута)
-                if (isExpanded)
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: () {
-                        print('🔥 Крестик нажат!'); // Для отладки
-                        // Сворачиваем панель - очищаем адрес
-                        bloc.add(const ClearDeliveryAddress());
-                        print(
-                            '🔥 Событие ClearDeliveryAddress отправлено!'); // Для отладки
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 16, bottom: 8),
-                        child: Icon(
-                          Icons.close,
-                          color: AppColor.grey,
-                          size: 20,
-                        ),
-                      ),
-                    ),
+
+                if (isExpanded) ...[
+                  const HandleLine(),
+                  CloseIcon(
+                    onPressed: () {
+                      bloc.add(const ClearDeliveryAddress());
+                    },
                   ),
+                ],
 
                 // Прокручиваемый контент
                 Expanded(
@@ -112,19 +92,16 @@ class DeliveryBottomPanel extends StatelessWidget {
                   child: ButtonWide(
                     text: 'Доставить сюда',
                     onPressed: () {
-                      if (state.tempDeliveryAddress != null) {
-                        // Если панель развернута - сохраняем и закрываем карту
+                      if (state.isPanelExpanded) {
                         bloc.add(const SaveDeliveryAddress());
                         Future.delayed(const Duration(milliseconds: 100), () {
-                          context.go('/main');
+                          if (context.mounted) {
+                            context.go('/main');
+                          }
                         });
                       } else {
                         // Если панель свернута - разворачиваем панель
-                        final addressToExpand = state.detectedAddress ??
-                            DeliveryAddress.empty().copyWith(
-                              city: 'Зеленоград',
-                            );
-                        bloc.add(UpdateDeliveryAddress(addressToExpand));
+                        bloc.add(const DeliverHerePressed());
                       }
                     },
                   ),
@@ -138,86 +115,60 @@ class DeliveryBottomPanel extends StatelessWidget {
   }
 
   Widget _buildDeliveryContent(DeliveryMapState state, DeliveryMapBloc bloc) {
-    // Определяем какой адрес показывать
-    final currentAddress = state.tempDeliveryAddress ??
-        state.detectedAddress ??
-        state.user.deliveryAddress;
-
-    final isExpanded = state.tempDeliveryAddress != null;
+    final isExpanded = state.isPanelExpanded;
 
     if (!isExpanded) {
-      // Свернутое состояние - показываем адрес с префиксом города
+      // Свернутое состояние
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          const Gap(25),
           Row(
             children: [
               Text('Ваш адрес:',
-                  style: TextStyle(fontSize: 14, color: AppColor.grey)),
+                  style: AppText.text12lb.copyWith(color: AppColor.grey)),
               const Spacer(),
-              Text('Доставим в течение 50 минут',
-                  style: TextStyle(fontSize: 12, color: AppColor.blue)),
+              Text('Доставим в течение ${state.remainingMinutes} минут',
+                  style: AppText.text14bold.copyWith(color: AppColor.blueDark)),
             ],
           ),
-          const SizedBox(height: 12),
+          const Gap(12),
 
-          // Адрес с префиксом города
-          DeliverTextField.addressWithCity(
-            hintText: 'Адрес доставки',
-            prefixText: currentAddress?.city ?? 'Зеленоград',
-            initialValue: currentAddress?.address ?? '',
-            onChanged: (value) {
-              final baseAddress = currentAddress ??
-                  DeliveryAddress.empty().copyWith(
-                    city: state.detectedAddress?.city ?? 'Зеленоград',
-                  );
-              final updatedAddress = baseAddress.copyWith(address: value);
-              bloc.add(UpdateDeliveryAddress(updatedAddress));
-            },
-          ),
+          // Передаем блок и состояние как параметры
+          AddressTextField(bloc: bloc, state: state),
         ],
       );
     }
 
-    // Развернутое состояние - все поля
+    // Развернутое состояние
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Адрес с префиксом города
-        DeliverTextField.addressWithCity(
-          hintText: 'Адрес доставки',
-          prefixText: currentAddress?.city ?? 'Зеленоград',
-          initialValue: currentAddress?.address ?? '',
-          onChanged: (value) {
-            final updatedAddress = currentAddress!.copyWith(address: value);
-            bloc.add(UpdateDeliveryAddress(updatedAddress));
-          },
-        ),
-
-        const SizedBox(height: 16),
-
+        // Передаем блок и состояние как параметры
+        AddressTextField(bloc: bloc, state: state),
+        const Gap(16),
         // Ряд с номером квартиры и подъездом
         Row(
           children: [
             Expanded(
               child: DeliverTextField.number(
                 hintText: 'Номер квартиры',
-                initialValue: currentAddress?.apartment ?? '',
+                initialValue: state.tempDeliveryAddress?.apartment ?? '',
                 onChanged: (value) {
                   final updatedAddress =
-                      currentAddress!.copyWith(apartment: value);
+                      state.tempDeliveryAddress!.copyWith(apartment: value);
                   bloc.add(UpdateDeliveryAddress(updatedAddress));
                 },
               ),
             ),
-            const SizedBox(width: 16),
+            const Gap(16),
             Expanded(
               child: DeliverTextField.number(
                 hintText: 'Подъезд',
-                initialValue: currentAddress?.entrance ?? '',
+                initialValue: state.tempDeliveryAddress?.entrance ?? '',
                 onChanged: (value) {
                   final updatedAddress =
-                      currentAddress!.copyWith(entrance: value);
+                      state.tempDeliveryAddress!.copyWith(entrance: value);
                   bloc.add(UpdateDeliveryAddress(updatedAddress));
                 },
               ),
@@ -225,7 +176,7 @@ class DeliveryBottomPanel extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 16),
+        const Gap(16),
 
         // Ряд с этажом и домофоном
         Row(
@@ -233,21 +184,22 @@ class DeliveryBottomPanel extends StatelessWidget {
             Expanded(
               child: DeliverTextField.number(
                 hintText: 'Этаж',
-                initialValue: currentAddress?.floor ?? '',
+                initialValue: state.tempDeliveryAddress?.floor ?? '',
                 onChanged: (value) {
-                  final updatedAddress = currentAddress!.copyWith(floor: value);
+                  final updatedAddress =
+                      state.tempDeliveryAddress!.copyWith(floor: value);
                   bloc.add(UpdateDeliveryAddress(updatedAddress));
                 },
               ),
             ),
-            const SizedBox(width: 16),
+            const Gap(16),
             Expanded(
               child: DeliverTextField.number(
                 hintText: 'Домофон',
-                initialValue: currentAddress?.intercom ?? '',
+                initialValue: state.tempDeliveryAddress?.intercom ?? '',
                 onChanged: (value) {
                   final updatedAddress =
-                      currentAddress!.copyWith(intercom: value);
+                      state.tempDeliveryAddress!.copyWith(intercom: value);
                   bloc.add(UpdateDeliveryAddress(updatedAddress));
                 },
               ),
@@ -255,14 +207,15 @@ class DeliveryBottomPanel extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 16),
+        const Gap(16),
 
         // Комментарий для курьера
         DeliverTextField.comment(
           hintText: 'Комментарий для курьера',
-          initialValue: currentAddress?.comment ?? '',
+          initialValue: state.tempDeliveryAddress?.comment ?? '',
           onChanged: (value) {
-            final updatedAddress = currentAddress!.copyWith(comment: value);
+            final updatedAddress =
+                state.tempDeliveryAddress!.copyWith(comment: value);
             bloc.add(UpdateDeliveryAddress(updatedAddress));
           },
         ),

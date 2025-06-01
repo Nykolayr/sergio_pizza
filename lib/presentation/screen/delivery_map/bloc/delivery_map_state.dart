@@ -9,6 +9,10 @@ class DeliveryMapState extends Equatable {
   final DeliveryAddress? tempDeliveryAddress;
   final mapkit.Point? userLocation;
   final DeliveryAddress? detectedAddress;
+  final DeliveryType selectedDeliveryType;
+  final String errorMessage;
+  final mapkit.Point? selectedLocation;
+  final int? remainingMinutes;
 
   bool get isReg => user.name.isNotEmpty;
   DeliveryType get deliveryType => user.deliveryType;
@@ -22,6 +26,10 @@ class DeliveryMapState extends Equatable {
     this.tempDeliveryAddress,
     this.userLocation,
     this.detectedAddress,
+    required this.selectedDeliveryType,
+    required this.errorMessage,
+    this.selectedLocation,
+    this.remainingMinutes,
   });
 
   DeliveryMapState copyWith({
@@ -33,6 +41,10 @@ class DeliveryMapState extends Equatable {
     DeliveryAddress? Function()? tempDeliveryAddress,
     mapkit.Point? userLocation,
     DeliveryAddress? detectedAddress,
+    DeliveryType? selectedDeliveryType,
+    String? errorMessage,
+    mapkit.Point? selectedLocation,
+    int? remainingMinutes,
   }) {
     return DeliveryMapState(
       isLoading: isLoading ?? this.isLoading,
@@ -45,6 +57,10 @@ class DeliveryMapState extends Equatable {
           : this.tempDeliveryAddress,
       userLocation: userLocation ?? this.userLocation,
       detectedAddress: detectedAddress ?? this.detectedAddress,
+      selectedDeliveryType: selectedDeliveryType ?? this.selectedDeliveryType,
+      errorMessage: errorMessage ?? this.errorMessage,
+      selectedLocation: selectedLocation ?? this.selectedLocation,
+      remainingMinutes: remainingMinutes ?? this.remainingMinutes,
     );
   }
 
@@ -57,6 +73,10 @@ class DeliveryMapState extends Equatable {
         tempDeliveryAddress: null,
         userLocation: null,
         detectedAddress: null,
+        selectedDeliveryType: DeliveryType.delivery,
+        errorMessage: '',
+        selectedLocation: null,
+        remainingMinutes: 50,
       );
 
   @override
@@ -69,5 +89,9 @@ class DeliveryMapState extends Equatable {
         tempDeliveryAddress,
         userLocation,
         detectedAddress,
+        selectedDeliveryType,
+        errorMessage,
+        selectedLocation,
+        remainingMinutes,
       ];
 }

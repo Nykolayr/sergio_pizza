@@ -40,9 +40,11 @@ class _SplashPageState extends State<SplashPage>
         final hasAnyAddress = userRepository.hasAnyAddress;
 
         if (hasAnyAddress) {
-          router.go('/main'); // Переходим на главную, если есть любой адрес
+          router
+              .goNamed('Общая'); // Переходим на главную, если есть любой адрес
         } else {
-          router.go('/main/delivery'); // Переходим сразу на выбор адреса
+          router.goNamed(
+              'карта доставки'); // Переходим на карту, если НЕТ адресов
         }
       } else {
         router.goNamed('авторизация');

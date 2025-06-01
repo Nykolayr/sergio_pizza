@@ -89,7 +89,7 @@ class UserRegPageState extends State<UserRegPage> with WidgetsBindingObserver {
           buildWhen: (previous, current) {
             if (previous.status != current.status &&
                 current.status.isSuccessRegister) {
-              context.go('/main');
+              context.goNamed('карта доставки');
             }
             return true;
           },

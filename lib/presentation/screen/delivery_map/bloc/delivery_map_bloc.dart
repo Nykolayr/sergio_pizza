@@ -28,8 +28,6 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
   String? detectedCity;
 
   DeliveryMapBloc() : super(DeliveryMapState.initial()) {
-    // НЕ устанавливаем город заранее - будем определять из геопозиции
-
     on<SetErrorEvent>(_onSetError);
     on<SelectDeliveryType>(_onSelectDeliveryType);
     on<MapTapped>(_onMapTapped);
@@ -40,9 +38,8 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     on<GetCurrentLocation>(_onGetCurrentLocation);
     on<InitializeMap>(_onInitializeMap);
     on<ExpandDeliveryPanel>(_onExpandDeliveryPanel);
-
-    // Инициализируем карту при создании блока
-    add(const InitializeMap());
+    on<DeliverHerePressed>(_onDeliverHerePressed);
+    on<ClosePanelEvent>(_onClosePanel);
   }
 
   /// установка ошибки
@@ -60,187 +57,279 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     emit(state.copyWith(user: userRepository.user));
   }
 
-  /// событие нажатия на карту
-  void _onMapTapped(MapTapped event, Emitter<DeliveryMapState> emit) async {
+  /// Обработка нажатия на карту
+  Future<void> _onMapTapped(
+      MapTapped event, Emitter<DeliveryMapState> emit) async {
     try {
-      // Создаем Point из yandex_mapkit с координатами
-      final coordinates =
-          mapkit.Point(latitude: event.latitude, longitude: event.longitude);
+      // Включаем загрузку для геокодинга
+      emit(state.copyWith(isLoading: true));
 
-      // Используем yandex_geocoder для получения адреса по координатам
+      Logger.i('🗺️ Тап по карте: ${event.latitude}, ${event.longitude}');
+
       final geocoder =
           YandexGeocoder(apiKey: '583ffca0-799b-43a5-aebd-9d7106689dc0');
 
-      final geocodeResult = await geocoder.getGeocode(
+      final geocoderResult = await geocoder
+          .getGeocode(
         ReverseGeocodeRequest(
           pointGeocode: (lat: event.latitude, lon: event.longitude),
           lang: Lang.ru,
         ),
+      )
+          .timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          Logger.e('⏰ Таймаут геокодера');
+          throw Exception('Таймаут геокодера');
+        },
       );
 
-      String fullAddress = 'Адрес не найден';
-      if (geocodeResult
+      if (geocoderResult
               .response?.geoObjectCollection?.featureMember?.isNotEmpty ==
           true) {
-        final geoObject = geocodeResult
-            .response!.geoObjectCollection!.featureMember!.first.geoObject;
-        fullAddress = geoObject?.metaDataProperty?.geocoderMetaData?.text ??
-            'Адрес не найден';
+        final geoObject = geocoderResult
+            .response!.geoObjectCollection!.featureMember!.first.geoObject!;
+        final fullAddress =
+            geoObject.metaDataProperty?.geocoderMetaData?.text ?? '';
+
+        final point = geoObject.point;
+        if (point != null &&
+            point.latitude != null &&
+            point.longitude != null) {
+          final exactLatitude = point.latitude!;
+          final exactLongitude = point.longitude!;
+
+          Logger.i('🎯 Найден точный адрес: $fullAddress');
+          Logger.i('📍 Точные координаты: $exactLatitude, $exactLongitude');
+
+          final exactLocation = mapkit.Point(
+            latitude: exactLatitude,
+            longitude: exactLongitude,
+          );
+
+          final parsedAddress = _parseAddress(fullAddress);
+          final city = parsedAddress['city'] ?? detectedCity ?? 'Зеленоград';
+          final address = parsedAddress['address'] ?? fullAddress;
+
+          // СОЗДАЕМ/ОБНОВЛЯЕМ tempDeliveryAddress с новым адресом
+          // Сохраняем существующие поля (квартира, подъезд и т.д.)
+          final updatedTempAddress = DeliveryAddress(
+            address: address, // НОВЫЙ адрес
+            city: city, // НОВЫЙ город
+            apartment: state.tempDeliveryAddress?.apartment ?? '', // Сохраняем
+            entrance: state.tempDeliveryAddress?.entrance ?? '', // Сохраняем
+            floor: state.tempDeliveryAddress?.floor ?? '', // Сохраняем
+            intercom: state.tempDeliveryAddress?.intercom ?? '', // Сохраняем
+            comment: state.tempDeliveryAddress?.comment ?? '', // Сохраняем
+            coordinates: exactLocation, // НОВЫЕ координаты
+          );
+
+          emit(state.copyWith(
+            selectedLocation: exactLocation,
+            tempDeliveryAddress: () => updatedTempAddress, // Обновляем temp
+            detectedAddress: updatedTempAddress, // Обновляем detected
+            isLoading: false,
+          ));
+
+          // Перемещаем камеру
+          mapController?.moveCamera(
+            mapkit.CameraUpdate.newCameraPosition(
+              mapkit.CameraPosition(
+                target: exactLocation,
+                zoom: 16,
+              ),
+            ),
+          );
+
+          Logger.i('✅ tempDeliveryAddress обновлен новым адресом');
+        }
+      } else {
+        Logger.e('❌ Адрес не найден по координатам тапа');
+        final fallbackLocation = mapkit.Point(
+          latitude: event.latitude,
+          longitude: event.longitude,
+        );
+
+        emit(state.copyWith(
+          selectedLocation: fallbackLocation,
+          isLoading: false,
+        ));
       }
-
-      // ЛОГИРУЕМ ЧТО ВОЗВРАЩАЕТ ГЕОКОДЕР ПРИ ТАПЕ
-      Logger.i('👆 Тап по карте - полный адрес: $fullAddress');
-      Logger.i('👆 Координаты тапа: ${event.latitude}, ${event.longitude}');
-
-      // Парсим адрес для извлечения города и адреса
-      final parsedAddress = _parseAddress(fullAddress);
-
-      Logger.i('👆 Парсинг тапа:');
-      Logger.i('🏙️ Город: ${parsedAddress['city']}');
-      Logger.i('🏠 Адрес: ${parsedAddress['address']}');
-
-      // ИЗМЕНЕНИЕ: Обновляем detectedAddress, а НЕ tempDeliveryAddress
-      final detectedAddress = DeliveryAddress(
-        address: parsedAddress['address'] ?? '',
-        city: parsedAddress['city'] ?? detectedCity ?? 'Зеленоград',
-        apartment: '',
-        entrance: '',
-        floor: '',
-        intercom: '',
-        comment: '',
-        coordinates: coordinates,
-      );
-
-      // Обновляем detectedAddress - панель остается свернутой
-      emit(state.copyWith(detectedAddress: detectedAddress));
     } catch (e) {
-      Logger.e('❌ Ошибка геокодирования при тапе: $e');
-
-      // В случае ошибки обновляем detectedAddress с координатами
-      final coordinates =
-          mapkit.Point(latitude: event.latitude, longitude: event.longitude);
-
-      final detectedAddress = DeliveryAddress(
-        address:
-            'Широта: ${event.latitude.toStringAsFixed(6)}, Долгота: ${event.longitude.toStringAsFixed(6)}',
-        city: detectedCity ?? 'Зеленоград',
-        apartment: '',
-        entrance: '',
-        floor: '',
-        intercom: '',
-        comment: '',
-        coordinates: coordinates,
+      Logger.e('❌ Ошибка при обработке тапа по карте: $e');
+      final fallbackLocation = mapkit.Point(
+        latitude: event.latitude,
+        longitude: event.longitude,
       );
 
-      emit(state.copyWith(detectedAddress: detectedAddress));
+      emit(state.copyWith(
+        selectedLocation: fallbackLocation,
+        isLoading: false,
+      ));
     }
   }
 
   void _onUpdateDeliveryAddress(
       UpdateDeliveryAddress event, Emitter<DeliveryMapState> emit) {
-    // Обновляем временный адрес
-    emit(state.copyWith(tempDeliveryAddress: () => event.address));
+    // ОПТИМИЗАЦИЯ: Проверяем что адрес действительно изменился
+    if (state.tempDeliveryAddress != event.address) {
+      emit(state.copyWith(tempDeliveryAddress: () => event.address));
+    }
   }
 
   void _onSaveDeliveryAddress(
       SaveDeliveryAddress event, Emitter<DeliveryMapState> emit) async {
-    // Сохраняем адрес в пользователя только при нажатии кнопки
-    if (state.tempDeliveryAddress != null &&
-        state.tempDeliveryAddress!.address.isNotEmpty &&
-        state.tempDeliveryAddress!.coordinates != null) {
-      await userRepository.setDeliveryAddress(state.tempDeliveryAddress!);
+    Logger.i('💾 Сохранение адреса доставки');
 
-      // Обновляем состояние с сохраненным пользователем и очищаем временный адрес
+    // Сохраняем tempDeliveryAddress в пользователя
+    if (state.tempDeliveryAddress != null &&
+        state.tempDeliveryAddress!.address.isNotEmpty) {
+      // Убеждаемся что город не пустой
+      final addressToSave = state.tempDeliveryAddress!.copyWith(
+        city: state.tempDeliveryAddress!.city.isEmpty
+            ? (detectedCity ?? 'Зеленоград')
+            : state.tempDeliveryAddress!.city,
+      );
+
+      await userRepository.setDeliveryAddress(addressToSave);
+
+      // Обновляем состояние с сохраненным пользователем
       emit(state.copyWith(
         user: userRepository.user,
-        tempDeliveryAddress: () => null,
+        tempDeliveryAddress: () => null, // Очищаем временный адрес
+        detectedAddress: addressToSave, // Обновляем detectedAddress
+        isPanelExpanded: false, // Сворачиваем панель
       ));
+
+      Logger.i('✅ Адрес сохранен в пользователя');
+
+      // ПЕРЕХОД НА ГЛАВНУЮ СТРАНИЦУ
+      // Здесь должен быть вызов навигации на главную
+      // router.go('/main'); или аналогичный код
     }
   }
 
-  /// событие очистки адреса доставки
+  /// закрывает панель доставки
   void _onClearDeliveryAddress(
       ClearDeliveryAddress event, Emitter<DeliveryMapState> emit) {
-    // Очищаем временный адрес - панель должна свернуться
-    emit(state.copyWith(tempDeliveryAddress: () => null));
+    emit(state.copyWith(isPanelExpanded: false));
   }
 
   /// событие очистки временных данных при выходе
   void _onClearTempDataOnExit(
       ClearTempDataOnExit event, Emitter<DeliveryMapState> emit) {
-    // Очищаем временные данные при выходе со страницы
+    // ИСПРАВЛЕНИЕ: Только очищаем временные данные, город остается
     emit(state.copyWith(tempDeliveryAddress: () => null));
   }
 
-  /// событие получения текущей локации
+  /// событие получения текущей геопозиции (кнопка геолокации)
   void _onGetCurrentLocation(
       GetCurrentLocation event, Emitter<DeliveryMapState> emit) async {
-    try {
-      double latitude, longitude;
-
-      if (isMock) {
-        // Используем моковые координаты Зеленограда
-        latitude = mockLatitude;
-        longitude = mockLongitude;
-      } else {
-        // Получаем реальную геопозицию
-        final position = await GeolocationService.instance.getCurrentPosition();
-        latitude = position.latitude;
-        longitude = position.longitude;
-      }
-
-      final userLocation =
-          mapkit.Point(latitude: latitude, longitude: longitude);
-
-      // Определяем адрес по координатам
-      await _detectAddressByLocation(latitude, longitude, emit);
-
-      // Обновляем позицию пользователя
-      emit(state.copyWith(userLocation: userLocation));
-
-      // Центрируем карту по новой позиции
-      if (mapController != null) {
-        await mapController!.moveCamera(
-          mapkit.CameraUpdate.newCameraPosition(
-            mapkit.CameraPosition(
-              target: userLocation,
-              zoom: 15,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      // В случае ошибки используем моковые координаты
-      final userLocation =
-          mapkit.Point(latitude: mockLatitude, longitude: mockLongitude);
-
-      // Определяем адрес по моковым координатам
-      await _detectAddressByLocation(mockLatitude, mockLongitude, emit);
-
-      emit(state.copyWith(userLocation: userLocation));
-
-      if (mapController != null) {
-        await mapController!.moveCamera(
-          mapkit.CameraUpdate.newCameraPosition(
-            mapkit.CameraPosition(
-              target: userLocation,
-              zoom: 15,
-            ),
-          ),
-        );
-      }
-    }
+    // При нажатии кнопки геолокации делаем то же самое
+    await _requestLocationAndSetup(emit);
   }
 
   /// событие инициализации карты
-  void _onInitializeMap(
+  Future<void> _onInitializeMap(
       InitializeMap event, Emitter<DeliveryMapState> emit) async {
-    // При первом запуске определяем геопозицию, но НЕ разворачиваем панель
-    add(const GetCurrentLocation());
+    // Проверяем есть ли сохраненный адрес доставки у пользователя
+    final savedAddress = userRepository.user?.deliveryAddress;
+
+    if (savedAddress != null && savedAddress.address.isNotEmpty) {
+      // Если есть сохраненный адрес - используем его, геолокацию НЕ запрашиваем
+      Logger.i('📋 Найден сохраненный адрес, пропускаем геолокацию');
+
+      emit(state.copyWith(
+        tempDeliveryAddress: () => savedAddress.copyWith(),
+        detectedAddress: savedAddress,
+        selectedLocation: savedAddress.coordinates,
+        userLocation: savedAddress
+            .coordinates, // Устанавливаем как текущее местоположение
+      ));
+
+      // Центрируем карту на сохраненном адресе
+      if (savedAddress.coordinates != null) {
+        mapController?.moveCamera(
+          mapkit.CameraUpdate.newCameraPosition(
+            mapkit.CameraPosition(
+              target: savedAddress.coordinates!,
+              zoom: 16, // Больший зум для точного адреса
+            ),
+          ),
+        );
+      }
+
+      // Устанавливаем город из сохраненного адреса
+      detectedCity = savedAddress.city;
+
+      Logger.i('✅ Загружен сохраненный адрес: ${savedAddress.address}');
+    } else {
+      // Если НЕТ сохраненного адреса - запрашиваем геолокацию
+      Logger.i('🗺️ Сохраненного адреса нет, запрашиваем геолокацию');
+      await _requestLocationAndSetup(emit);
+    }
   }
 
-  // Исправляем _detectAddressByLocation - НЕ создаем tempDeliveryAddress
-  Future<void> _detectAddressByLocation(
+  /// ОБЩИЙ метод для запроса геолокации и настройки карты
+  Future<void> _requestLocationAndSetup(Emitter<DeliveryMapState> emit) async {
+    try {
+      // Включаем загрузку
+      emit(state.copyWith(isLoading: true));
+
+      Logger.i('🗺️ Запрос геолокации и настройка карты');
+
+      // ВСЕГДА запрашиваем разрешение на геолокацию
+      await GeolocationService.instance.getCurrentPosition();
+
+      // Но используем координаты в зависимости от режима
+      final mapkit.Point userLocation;
+
+      if (isMock) {
+        userLocation = const mapkit.Point(
+          latitude: mockLatitude,
+          longitude: mockLongitude,
+        );
+        Logger.i('🧪 Моковый режим: используем моковые координаты');
+      } else {
+        final position = await GeolocationService.instance.getCurrentPosition();
+        userLocation = mapkit.Point(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+        Logger.i('📍 Реальный режим: используем реальную геолокацию');
+      }
+
+      // Обновляем местоположение пользователя И маркер
+      emit(state.copyWith(
+        userLocation: userLocation,
+        selectedLocation: userLocation,
+        isLoading: false,
+      ));
+
+      // Центрируем карту на позиции
+      mapController?.moveCamera(
+        mapkit.CameraUpdate.newCameraPosition(
+          mapkit.CameraPosition(
+            target: userLocation,
+            zoom: 15,
+          ),
+        ),
+      );
+
+      // Определяем адрес и СОЗДАЕМ/ОБНОВЛЯЕМ tempDeliveryAddress
+      await _detectAddressAndUpdateTemp(
+          userLocation.latitude, userLocation.longitude, emit);
+    } catch (e) {
+      Logger.e('❌ Ошибка получения геопозиции: $e');
+      emit(state.copyWith(
+        errorMessage: 'Ошибка получения геопозиции: $e',
+        isLoading: false,
+      ));
+    }
+  }
+
+  // НОВЫЙ метод - определяет адрес и создает/обновляет tempDeliveryAddress
+  Future<void> _detectAddressAndUpdateTemp(
       double latitude, double longitude, Emitter<DeliveryMapState> emit) async {
     try {
       final geocoder =
@@ -262,54 +351,61 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
         final fullAddress =
             geoObject?.metaDataProperty?.geocoderMetaData?.text ?? '';
 
-        // ЛОГИРУЕМ ЧТО ВОЗВРАЩАЕТ ГЕОКОДЕР
         Logger.i('🗺️ Полный адрес от геокодера: $fullAddress');
-        Logger.i('🗺️ Координаты: $latitude, $longitude');
 
-        // Парсим адрес для извлечения города и адреса
+        // Парсим адрес
         final parsedAddress = _parseAddress(fullAddress);
-
-        Logger.i('🗺️ Парсинг результат:');
-        Logger.i('🏙️ Город: ${parsedAddress['city']}');
-        Logger.i('🏠 Адрес: ${parsedAddress['address']}');
+        final city = parsedAddress['city'] ?? 'Зеленоград';
+        final address = parsedAddress['address'] ?? '';
 
         // Сохраняем определенный город
-        if (detectedCity == null) {
-          detectedCity = parsedAddress['city'];
-        }
+        detectedCity ??= city;
 
-        // Создаем адрес для отображения
-        final detectedAddress = DeliveryAddress(
-          address: parsedAddress['address'] ?? '',
-          city: parsedAddress['city'] ?? 'Зеленоград',
-          apartment: '',
-          entrance: '',
-          floor: '',
-          intercom: '',
-          comment: '',
+        Logger.i('🏙️ Определен город: $city');
+        Logger.i('🏠 Определен адрес: $address');
+
+        // СОЗДАЕМ/ОБНОВЛЯЕМ tempDeliveryAddress
+        // Если уже есть tempDeliveryAddress - сохраняем дополнительные поля
+        final updatedTempAddress = DeliveryAddress(
+          address: address, // НОВЫЙ адрес
+          city: city, // НОВЫЙ город
+          apartment: state.tempDeliveryAddress?.apartment ?? '', // Сохраняем
+          entrance: state.tempDeliveryAddress?.entrance ?? '', // Сохраняем
+          floor: state.tempDeliveryAddress?.floor ?? '', // Сохраняем
+          intercom: state.tempDeliveryAddress?.intercom ?? '', // Сохраняем
+          comment: state.tempDeliveryAddress?.comment ?? '', // Сохраняем
           coordinates: mapkit.Point(latitude: latitude, longitude: longitude),
         );
 
-        // Обновляем состояние с определенным адресом
-        emit(state.copyWith(detectedAddress: detectedAddress));
+        // Обновляем состояние
+        emit(state.copyWith(
+          tempDeliveryAddress: () =>
+              updatedTempAddress, // Создаем/обновляем temp
+          detectedAddress: updatedTempAddress, // Обновляем detected
+        ));
+
+        Logger.i('✅ tempDeliveryAddress создан/обновлен');
       }
     } catch (e) {
-      Logger.e('❌ Ошибка геокодирования: $e');
+      Logger.e('❌ Ошибка определения адреса: $e');
+      detectedCity ??= 'Зеленоград';
 
-      // В случае ошибки создаем адрес с координатами
-      final detectedAddress = DeliveryAddress(
-        address:
-            'Координаты: ${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}',
-        city: detectedCity ?? 'Зеленоград',
-        apartment: '',
-        entrance: '',
-        floor: '',
-        intercom: '',
-        comment: '',
+      // Создаем базовый tempDeliveryAddress
+      final fallbackAddress = DeliveryAddress(
+        address: '',
+        city: detectedCity!,
+        apartment: state.tempDeliveryAddress?.apartment ?? '',
+        entrance: state.tempDeliveryAddress?.entrance ?? '',
+        floor: state.tempDeliveryAddress?.floor ?? '',
+        intercom: state.tempDeliveryAddress?.intercom ?? '',
+        comment: state.tempDeliveryAddress?.comment ?? '',
         coordinates: mapkit.Point(latitude: latitude, longitude: longitude),
       );
 
-      emit(state.copyWith(detectedAddress: detectedAddress));
+      emit(state.copyWith(
+        tempDeliveryAddress: () => fallbackAddress,
+        detectedAddress: fallbackAddress,
+      ));
     }
   }
 
@@ -401,11 +497,52 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
   /// событие разворачивания панели доставки
   void _onExpandDeliveryPanel(
       ExpandDeliveryPanel event, Emitter<DeliveryMapState> emit) {
-    // Берем detectedAddress и делаем его tempDeliveryAddress для редактирования
+    // ИСПРАВЛЕНИЕ: Берем detectedAddress и делаем его tempDeliveryAddress
     if (state.detectedAddress != null) {
       emit(state.copyWith(
-        tempDeliveryAddress: () => state.detectedAddress,
+        tempDeliveryAddress: () =>
+            state.detectedAddress!.copyWith(), // Копируем адрес
+      ));
+    } else {
+      // Если нет detectedAddress, создаем новый с сохраненным городом
+      final newAddress = DeliveryAddress(
+        address: '',
+        city: detectedCity ?? 'Зеленоград',
+        apartment: '',
+        entrance: '',
+        floor: '',
+        intercom: '',
+        comment: '',
+        coordinates: state.userLocation,
+      );
+
+      emit(state.copyWith(
+        tempDeliveryAddress: () => newAddress,
+        detectedAddress: newAddress,
       ));
     }
+  }
+
+  /// Обработка нажатия кнопки "Доставить сюда"
+  void _onDeliverHerePressed(
+      DeliverHerePressed event, Emitter<DeliveryMapState> emit) {
+    Logger.i('🚚 Нажата кнопка "Доставить сюда"');
+
+    // ТОЛЬКО разворачиваем панель, НЕ сохраняем!
+    emit(state.copyWith(
+      isPanelExpanded: true, // Разворачиваем панель для редактирования
+    ));
+
+    Logger.i('✅ Панель развернута для редактирования');
+  }
+
+  /// Обработка закрытия панели
+  void _onClosePanel(ClosePanelEvent event, Emitter<DeliveryMapState> emit) {
+    Logger.i('❌ Закрытие панели');
+
+    // ТОЛЬКО здесь сворачиваем панель!
+    emit(state.copyWith(
+      isPanelExpanded: false, // ТОЛЬКО здесь!
+    ));
   }
 }
