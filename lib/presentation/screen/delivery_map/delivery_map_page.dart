@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sergio_pizza/domain/models/delivery_type.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_bloc.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/button_back.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/delivery_bottom_panel.dart';
@@ -109,14 +110,15 @@ class _DeliveryMapPageState extends State<DeliveryMapPage> {
                         ]
                       : [],
                   onMapTap: (point) {
-                    // Отправляем координаты тапа для поиска ближайшего адреса
-                    bloc.add(MapTapped(
-                      latitude: point.latitude,
-                      longitude: point.longitude,
-                    ));
-
-                    // НЕ перемещаем камеру сразу - ждем результат геокодинга
-                    // Камера переместится автоматически после получения точного адреса
+                    // Обрабатываем тап только в режиме доставки
+                    if (state.selectedDeliveryType == DeliveryType.delivery) {
+                      // Отправляем координаты тапа для поиска ближайшего адреса
+                      bloc.add(MapTapped(
+                        latitude: point.latitude,
+                        longitude: point.longitude,
+                      ));
+                    }
+                    // В режиме самовывоза тапы игнорируем
                   },
                 ),
                 Positioned(

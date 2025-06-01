@@ -63,6 +63,7 @@ class UpdateDeliveryAddress extends DeliveryMapEvent {
   List<Object> get props => [address];
 }
 
+/// событие сохранения адреса доставки
 class SaveDeliveryAddress extends DeliveryMapEvent {
   const SaveDeliveryAddress();
 
@@ -94,6 +95,7 @@ class GetCurrentLocation extends DeliveryMapEvent {
   List<Object> get props => [];
 }
 
+/// событие инициализации карты
 class InitializeMap extends DeliveryMapEvent {
   const InitializeMap();
 
@@ -123,4 +125,14 @@ class ClosePanelEvent extends DeliveryMapEvent {
 
   @override
   List<Object> get props => [];
+}
+
+// Добавляем новое событие
+class UpdateUserLocationSilently extends DeliveryMapEvent {
+  final mapkit.Point location;
+
+  const UpdateUserLocationSilently(this.location);
+
+  @override
+  List<Object> get props => [location];
 }

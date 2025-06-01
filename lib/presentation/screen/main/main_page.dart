@@ -52,7 +52,11 @@ class _MainPageState extends State<MainPage> {
     if (state.user.deliveryType == DeliveryType.delivery) {
       return '${state.user.deliveryAddress.city}, ${state.user.deliveryAddress.address}';
     } else if (state.user.deliveryType == DeliveryType.pickup) {
-      return state.user.pickupAddress.address;
+      if (state.user.pickupAddress.address.isNotEmpty) {
+        return state.user.pickupAddress.address;
+      } else {
+        return 'Выберите адрес самовывоза';
+      }
     } else {
       return 'Выберите адрес доставки';
     }

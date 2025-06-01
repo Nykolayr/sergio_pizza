@@ -7,7 +7,7 @@ import 'package:sergio_pizza/domain/models/response_api.dart';
 import 'package:sergio_pizza/domain/models/user.dart';
 import 'package:sergio_pizza/domain/routers/routers.dart';
 import 'package:sergio_pizza/data/geolocation_servise.dart';
-import 'package:yandex_mapkit/yandex_mapkit.dart';
+import 'package:yandex_mapkit/yandex_mapkit.dart' as mapkit;
 import 'package:sergio_pizza/domain/models/delivery_address.dart';
 import 'package:sergio_pizza/domain/models/pickup_address.dart';
 import 'package:sergio_pizza/domain/models/delivery_type.dart';
@@ -60,7 +60,7 @@ class UserRepository extends GetxController {
       try {
         final position = await GeolocationService.instance.getCurrentPosition();
         user = user.copyWith(
-          point: Point(
+          point: mapkit.Point(
             latitude: position.latitude,
             longitude: position.longitude,
           ),
@@ -259,5 +259,10 @@ class UserRepository extends GetxController {
   Future<void> setDeliveryType(DeliveryType type) async {
     user = user.copyWith(deliveryType: type);
     await saveUserToLocal();
+  }
+
+  Future<void> saveGeolocation(mapkit.Point location) async {
+    // Сохраняем геолокацию в SharedPreferences или другое хранилище
+    // Обновляем user с новой геолокацией
   }
 }

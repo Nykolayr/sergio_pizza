@@ -40,6 +40,7 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     on<ExpandDeliveryPanel>(_onExpandDeliveryPanel);
     on<DeliverHerePressed>(_onDeliverHerePressed);
     on<ClosePanelEvent>(_onClosePanel);
+    on<UpdateUserLocationSilently>(_onUpdateUserLocationSilently);
   }
 
   /// установка ошибки
@@ -53,8 +54,51 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     // Обновляем тип доставки в UserRepository
     await userRepository.setDeliveryType(event.deliveryType);
 
-    // Обновляем состояние с новым пользователем
-    emit(state.copyWith(user: userRepository.user));
+    // Обновляем состояние с новым типом
+    emit(state.copyWith(
+      user: userRepository.user,
+      selectedDeliveryType: event.deliveryType,
+    ));
+
+    // Переключаем маркер в зависимости от типа
+    if (event.deliveryType == DeliveryType.pickup) {
+      // При переходе на самовывоз - СРАЗУ показываем старую геолокацию
+      if (state.userLocation != null) {
+        emit(state.copyWith(selectedLocation: state.userLocation));
+
+        // Сразу перемещаем камеру к старой геолокации
+        mapController?.moveCamera(
+          mapkit.CameraUpdate.newCameraPosition(
+            mapkit.CameraPosition(
+              target: state.userLocation!,
+              zoom: 15,
+            ),
+          ),
+        );
+      }
+
+      // Потом тихо обновляем геолокацию в фоне БЕЗ emit
+      _updateGeolocationSilentlyWithoutEmit();
+    } else {
+      // При переходе на доставку - показываем сохраненный адрес
+      final savedAddress = userRepository.user?.deliveryAddress;
+      if (savedAddress != null && savedAddress.coordinates != null) {
+        emit(state.copyWith(
+          selectedLocation: savedAddress.coordinates,
+          tempDeliveryAddress: () => savedAddress,
+        ));
+
+        // Перемещаем камеру к сохраненному адресу
+        mapController?.moveCamera(
+          mapkit.CameraUpdate.newCameraPosition(
+            mapkit.CameraPosition(
+              target: savedAddress.coordinates!,
+              zoom: 15,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   /// Обработка нажатия на карту
@@ -225,8 +269,23 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
   /// событие получения текущей геопозиции (кнопка геолокации)
   void _onGetCurrentLocation(
       GetCurrentLocation event, Emitter<DeliveryMapState> emit) async {
-    // При нажатии кнопки геолокации делаем то же самое
-    await _requestLocationAndSetup(emit);
+    // СРАЗУ переходим к старой геолокации если есть
+    if (state.userLocation != null) {
+      emit(state.copyWith(selectedLocation: state.userLocation));
+
+      // Сразу перемещаем камеру
+      mapController?.moveCamera(
+        mapkit.CameraUpdate.newCameraPosition(
+          mapkit.CameraPosition(
+            target: state.userLocation!,
+            zoom: 15,
+          ),
+        ),
+      );
+    }
+
+    // Потом тихо обновляем геолокацию в фоне БЕЗ emit
+    _updateGeolocationSilentlyWithoutEmit();
   }
 
   /// событие инициализации карты
@@ -270,18 +329,93 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     }
   }
 
-  /// ОБЩИЙ метод для запроса геолокации и настройки карты
-  Future<void> _requestLocationAndSetup(Emitter<DeliveryMapState> emit) async {
+  /// НОВЫЙ метод - тихое обновление геолокации БЕЗ emit
+  Future<void> _updateGeolocationSilentlyWithoutEmit() async {
     try {
-      // Включаем загрузку
+      Logger.i('🔄 Тихое обновление геолокации');
+
+      // Получаем новую геолокацию
+      final mapkit.Point newUserLocation;
+
+      if (isMock) {
+        newUserLocation = const mapkit.Point(
+          latitude: mockLatitude,
+          longitude: mockLongitude,
+        );
+        Logger.i('🧪 Моковый режим: используем моковые координаты');
+      } else {
+        final position = await GeolocationService.instance.getCurrentPosition();
+        newUserLocation = mapkit.Point(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+        Logger.i('📍 Получена новая геолокация');
+      }
+
+      // Сохраняем новую геолокацию в пользователя
+      await userRepository.saveGeolocation(newUserLocation);
+
+      // Добавляем новое событие для обновления состояния
+      add(UpdateUserLocationSilently(newUserLocation));
+
+      Logger.i('✅ Геолокация тихо обновлена');
+    } catch (e) {
+      Logger.e('❌ Ошибка тихого обновления геолокации: $e');
+      // НЕ показываем ошибку пользователю, просто логируем
+    }
+  }
+
+  /// НОВЫЙ обработчик для тихого обновления геолокации
+  void _onUpdateUserLocationSilently(
+      UpdateUserLocationSilently event, Emitter<DeliveryMapState> emit) {
+    // Обновляем состояние с новой геолокацией
+    emit(state.copyWith(
+      userLocation: event.location,
+      selectedLocation: event.location,
+      user: userRepository.user,
+    ));
+
+    // Плавно перемещаем камеру к новой позиции
+    mapController?.moveCamera(
+      mapkit.CameraUpdate.newCameraPosition(
+        mapkit.CameraPosition(
+          target: event.location,
+          zoom: 15,
+        ),
+      ),
+      animation: const mapkit.MapAnimation(
+        type: mapkit.MapAnimationType.smooth,
+        duration: 1.0, // 1 секунда плавной анимации
+      ),
+    );
+  }
+
+  /// ОБНОВЛЕННЫЙ метод для запроса геолокации и настройки карты
+  Future<void> _requestLocationAndSetup(Emitter<DeliveryMapState> emit) async {
+    // Если есть сохраненная геолокация - используем её сразу
+    if (state.userLocation != null) {
+      emit(state.copyWith(selectedLocation: state.userLocation));
+
+      mapController?.moveCamera(
+        mapkit.CameraUpdate.newCameraPosition(
+          mapkit.CameraPosition(
+            target: state.userLocation!,
+            zoom: 15,
+          ),
+        ),
+      );
+
+      // Потом тихо обновляем
+      _updateGeolocationSilentlyWithoutEmit();
+      return;
+    }
+
+    // Если НЕТ сохраненной геолокации - показываем лоадер только первый раз
+    try {
       emit(state.copyWith(isLoading: true));
 
-      Logger.i('🗺️ Запрос геолокации и настройка карты');
+      Logger.i('🗺️ Первый запрос геолокации');
 
-      // ВСЕГДА запрашиваем разрешение на геолокацию
-      await GeolocationService.instance.getCurrentPosition();
-
-      // Но используем координаты в зависимости от режима
       final mapkit.Point userLocation;
 
       if (isMock) {
@@ -289,24 +423,24 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
           latitude: mockLatitude,
           longitude: mockLongitude,
         );
-        Logger.i('🧪 Моковый режим: используем моковые координаты');
       } else {
         final position = await GeolocationService.instance.getCurrentPosition();
         userLocation = mapkit.Point(
           latitude: position.latitude,
           longitude: position.longitude,
         );
-        Logger.i('📍 Реальный режим: используем реальную геолокацию');
       }
 
-      // Обновляем местоположение пользователя И маркер
+      // Сохраняем геолокацию в пользователя
+      await userRepository.saveGeolocation(userLocation);
+
       emit(state.copyWith(
         userLocation: userLocation,
         selectedLocation: userLocation,
+        user: userRepository.user,
         isLoading: false,
       ));
 
-      // Центрируем карту на позиции
       mapController?.moveCamera(
         mapkit.CameraUpdate.newCameraPosition(
           mapkit.CameraPosition(
@@ -316,11 +450,11 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
         ),
       );
 
-      // Определяем адрес и СОЗДАЕМ/ОБНОВЛЯЕМ tempDeliveryAddress
+      // Определяем адрес
       await _detectAddressAndUpdateTemp(
           userLocation.latitude, userLocation.longitude, emit);
     } catch (e) {
-      Logger.e('❌ Ошибка получения геопозиции: $e');
+      Logger.e('❌ Ошибка первого запроса геолокации: $e');
       emit(state.copyWith(
         errorMessage: 'Ошибка получения геопозиции: $e',
         isLoading: false,

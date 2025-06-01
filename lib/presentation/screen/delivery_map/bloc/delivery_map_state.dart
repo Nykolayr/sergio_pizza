@@ -64,20 +64,25 @@ class DeliveryMapState extends Equatable {
     );
   }
 
-  factory DeliveryMapState.initial() => DeliveryMapState(
-        isLoading: false,
-        error: '',
-        user: Get.find<UserRepository>().user,
-        isListChange: false,
-        isPanelExpanded: false,
-        tempDeliveryAddress: null,
-        userLocation: null,
-        detectedAddress: null,
-        selectedDeliveryType: DeliveryType.delivery,
-        errorMessage: '',
-        selectedLocation: null,
-        remainingMinutes: 50,
-      );
+  factory DeliveryMapState.initial() {
+    final userRepo = Get.find<UserRepository>();
+    return DeliveryMapState(
+      isLoading: false,
+      error: '',
+      user: userRepo.user,
+      isListChange: false,
+      isPanelExpanded: false,
+      tempDeliveryAddress: null,
+      userLocation: userRepo.user.deliveryType == DeliveryType.delivery
+          ? userRepo.user.deliveryAddress.coordinates
+          : null,
+      detectedAddress: null,
+      selectedDeliveryType: DeliveryType.delivery,
+      errorMessage: '',
+      selectedLocation: null,
+      remainingMinutes: 50,
+    );
+  }
 
   @override
   List<Object?> get props => [
