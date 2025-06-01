@@ -21,8 +21,6 @@ class AddressTextField extends StatelessWidget {
     final currentCity =
         currentAddress?.city ?? bloc.detectedCity ?? 'Зеленоград';
 
-    final isExpanded = state.tempDeliveryAddress != null;
-
     return TextField(
       controller: TextEditingController(text: currentAddress?.address ?? ''),
       keyboardType: TextInputType.streetAddress,

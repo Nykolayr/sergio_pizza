@@ -1,4 +1,6 @@
 import 'package:sergio_pizza/data/api/dio_client.dart';
+import 'package:sergio_pizza/data/mock/mock_establishments.dart';
+import 'package:sergio_pizza/main.dart';
 import 'package:get/get.dart';
 import 'package:sergio_pizza/domain/models/response_api.dart';
 
@@ -95,5 +97,22 @@ class Api {
   /// разлогиниться со всех устройств
   Future<ResponseApi> logoutAll() async {
     return await dio.post('/api/mobile/logout/all');
+  }
+
+  /// получение заведений
+  Future<ResponseApi> getEstablishments() async {
+    if (isMock) {
+      // Имитируем задержку сети
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      return ResSuccess(
+        {
+          'success': true,
+          'data': mockEstablishments,
+        },
+      );
+    } else {
+      return await dio.get('/api/establishments');
+    }
   }
 }

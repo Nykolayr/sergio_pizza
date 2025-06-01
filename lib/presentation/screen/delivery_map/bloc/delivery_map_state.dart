@@ -13,6 +13,9 @@ class DeliveryMapState extends Equatable {
   final String errorMessage;
   final mapkit.Point? selectedLocation;
   final int? remainingMinutes;
+  final List<Establishment> filteredEstablishments;
+  final String searchQuery;
+  final EstablishmentType? selectedEstablishmentType;
 
   bool get isReg => user.name.isNotEmpty;
   DeliveryType get deliveryType => user.deliveryType;
@@ -30,6 +33,9 @@ class DeliveryMapState extends Equatable {
     required this.errorMessage,
     this.selectedLocation,
     this.remainingMinutes,
+    required this.filteredEstablishments,
+    required this.searchQuery,
+    this.selectedEstablishmentType,
   });
 
   DeliveryMapState copyWith({
@@ -45,6 +51,9 @@ class DeliveryMapState extends Equatable {
     String? errorMessage,
     mapkit.Point? selectedLocation,
     int? remainingMinutes,
+    List<Establishment>? filteredEstablishments,
+    String? searchQuery,
+    EstablishmentType? Function()? selectedEstablishmentType,
   }) {
     return DeliveryMapState(
       isLoading: isLoading ?? this.isLoading,
@@ -61,6 +70,12 @@ class DeliveryMapState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       selectedLocation: selectedLocation ?? this.selectedLocation,
       remainingMinutes: remainingMinutes ?? this.remainingMinutes,
+      filteredEstablishments:
+          filteredEstablishments ?? this.filteredEstablishments,
+      searchQuery: searchQuery ?? this.searchQuery,
+      selectedEstablishmentType: selectedEstablishmentType != null
+          ? selectedEstablishmentType()
+          : this.selectedEstablishmentType,
     );
   }
 
@@ -81,6 +96,9 @@ class DeliveryMapState extends Equatable {
       errorMessage: '',
       selectedLocation: null,
       remainingMinutes: 50,
+      filteredEstablishments: [],
+      searchQuery: '',
+      selectedEstablishmentType: null,
     );
   }
 
@@ -98,5 +116,8 @@ class DeliveryMapState extends Equatable {
         errorMessage,
         selectedLocation,
         remainingMinutes,
+        filteredEstablishments,
+        searchQuery,
+        selectedEstablishmentType,
       ];
 }

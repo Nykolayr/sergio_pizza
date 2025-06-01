@@ -136,3 +136,11 @@ class UpdateUserLocationSilently extends DeliveryMapEvent {
   @override
   List<Object> get props => [location];
 }
+
+// Загрузка заведений
+class LoadEstablishments extends DeliveryMapEvent {
+  const LoadEstablishments();
+
+  @override
+  List<Object> get props => [];
+}

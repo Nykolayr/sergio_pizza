@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
 import 'package:sergio_pizza/domain/models/delivery_address.dart';
+import 'package:sergio_pizza/domain/models/establishment_type.dart';
 import 'package:sergio_pizza/domain/models/user.dart';
 import 'package:sergio_pizza/domain/repository/user_repository.dart';
 import 'package:sergio_pizza/domain/models/delivery_type.dart';
@@ -10,6 +11,8 @@ import 'package:yandex_geocoder/yandex_geocoder.dart';
 import 'package:sergio_pizza/main.dart'; // Для доступа к isMock
 import 'package:sergio_pizza/data/geolocation_servise.dart'; // Для геопозиции
 import 'package:flutter_easylogger/flutter_logger.dart'; // Добавляем импорт
+import 'package:sergio_pizza/domain/models/establishment.dart';
+import 'package:sergio_pizza/domain/repository/main_repository.dart';
 
 part 'delivery_map_event.dart';
 part 'delivery_map_state.dart';
@@ -41,6 +44,7 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     on<DeliverHerePressed>(_onDeliverHerePressed);
     on<ClosePanelEvent>(_onClosePanel);
     on<UpdateUserLocationSilently>(_onUpdateUserLocationSilently);
+    on<LoadEstablishments>(_onLoadEstablishments);
   }
 
   /// установка ошибки
@@ -327,6 +331,9 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
       Logger.i('🗺️ Сохраненного адреса нет, запрашиваем геолокацию');
       await _requestLocationAndSetup(emit);
     }
+
+    // Загружаем заведения
+    add(const LoadEstablishments());
   }
 
   /// НОВЫЙ метод - тихое обновление геолокации БЕЗ emit
@@ -678,5 +685,29 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     emit(state.copyWith(
       isPanelExpanded: false, // ТОЛЬКО здесь!
     ));
+  }
+
+  /// загрузка заведений
+  void _onLoadEstablishments(
+      LoadEstablishments event, Emitter<DeliveryMapState> emit) async {
+    try {
+      final mainRepo = Get.find<MainRepository>();
+      final result = await mainRepo.loadEstablishments();
+
+      if (result.isEmpty) {
+        // Успешная загрузка
+        emit(state.copyWith(
+          filteredEstablishments: mainRepo.establishments,
+          error: '',
+        ));
+      } else {
+        // Ошибка загрузки
+        emit(state.copyWith(
+          error: result,
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(error: 'Ошибка загрузки заведений: $e'));
+    }
   }
 }
