@@ -6,7 +6,6 @@ import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/close_icon.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/handle.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
-import 'package:sergio_pizza/domain/models/delivery_type.dart';
 import 'package:sergio_pizza/presentation/widgets/buttons.dart';
 import 'package:sergio_pizza/presentation/widgets/custom_text_field.dart';
 import 'package:go_router/go_router.dart';
@@ -160,10 +159,7 @@ class _DeliveryBottomPanelState extends State<DeliveryBottomPanel>
                             child: SingleChildScrollView(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16),
-                              child: state.user.deliveryType ==
-                                      DeliveryType.delivery
-                                  ? _buildDeliveryContent(state, bloc)
-                                  : _buildPickupContent(state, bloc),
+                              child: _buildDeliveryContent(state, bloc),
                             ),
                           ),
                         ),
@@ -319,25 +315,6 @@ class _DeliveryBottomPanelState extends State<DeliveryBottomPanel>
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildPickupContent(DeliveryMapState state, DeliveryMapBloc bloc) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Text(
-            'Выберите точку самовывоза',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColor.black,
-            ),
-          ),
-          // Здесь будет список точек самовывоза
-        ],
-      ),
     );
   }
 }

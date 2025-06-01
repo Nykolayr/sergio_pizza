@@ -11,6 +11,7 @@ import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/delivery_b
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/tabs_map.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart' as mapkit;
 import 'package:sergio_pizza/presentation/theme/theme.dart';
+import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/pickup_bottom_panel.dart';
 
 class DeliveryMapPage extends StatefulWidget {
   const DeliveryMapPage({super.key});
@@ -149,7 +150,9 @@ class _DeliveryMapPageState extends State<DeliveryMapPage> {
                     angle: 4,
                   ),
                 ),
-                const DeliveryBottomPanel(),
+                state.selectedDeliveryType == DeliveryType.delivery
+                    ? const DeliveryBottomPanel()
+                    : const PickupBottomPanel(),
                 if (state.isLoading)
                   Positioned(
                     top: MediaQuery.of(context).size.height / 2 - 200,

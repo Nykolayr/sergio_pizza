@@ -74,10 +74,10 @@ class DeliveryMapState extends Equatable {
       isPanelExpanded: false,
       tempDeliveryAddress: null,
       userLocation: userRepo.user.deliveryType == DeliveryType.delivery
-          ? userRepo.user.deliveryAddress.coordinates
+          ? userRepo.user.deliveryAddress?.coordinates
           : null,
       detectedAddress: null,
-      selectedDeliveryType: DeliveryType.delivery,
+      selectedDeliveryType: userRepo.user.deliveryType,
       errorMessage: '',
       selectedLocation: null,
       remainingMinutes: 50,
