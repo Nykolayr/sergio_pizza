@@ -38,3 +38,48 @@ class SelectDeliveryTab extends DeliveryMapEvent {
 class SelectPickupTab extends DeliveryMapEvent {
   const SelectPickupTab();
 }
+
+class TogglePanelExpansion extends DeliveryMapEvent {
+  const TogglePanelExpansion();
+}
+
+class MapTapped extends DeliveryMapEvent {
+  final double latitude;
+  final double longitude;
+
+  const MapTapped({required this.latitude, required this.longitude});
+
+  @override
+  List<Object> get props => [latitude, longitude];
+}
+
+class UpdateDeliveryAddress extends DeliveryMapEvent {
+  final DeliveryAddress address;
+
+  const UpdateDeliveryAddress(this.address);
+
+  @override
+  List<Object> get props => [address];
+}
+
+class SaveDeliveryAddress extends DeliveryMapEvent {
+  const SaveDeliveryAddress();
+
+  @override
+  List<Object> get props => [];
+}
+
+class ClearDeliveryAddress extends DeliveryMapEvent {
+  const ClearDeliveryAddress();
+
+  @override
+  List<Object> get props => [];
+}
+
+// Новое событие для очистки временных данных при выходе
+class ClearTempDataOnExit extends DeliveryMapEvent {
+  const ClearTempDataOnExit();
+
+  @override
+  List<Object> get props => [];
+}

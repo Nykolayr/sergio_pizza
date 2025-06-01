@@ -5,6 +5,8 @@ class DeliveryMapState extends Equatable {
   final String error;
   final User user;
   final bool isListChange;
+  final bool isPanelExpanded;
+  final DeliveryAddress? tempDeliveryAddress;
 
   bool get isReg => user.name.isNotEmpty;
   DeliveryType get deliveryType => user.deliveryType;
@@ -14,6 +16,8 @@ class DeliveryMapState extends Equatable {
     required this.error,
     required this.user,
     required this.isListChange,
+    required this.isPanelExpanded,
+    this.tempDeliveryAddress,
   });
 
   DeliveryMapState copyWith({
@@ -21,16 +25,18 @@ class DeliveryMapState extends Equatable {
     String? error,
     User? user,
     bool? isListChange,
+    bool? isPanelExpanded,
+    DeliveryAddress? Function()? tempDeliveryAddress,
   }) {
-    final shouldToggleList = user != null;
-
     return DeliveryMapState(
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       user: user ?? this.user,
-      isListChange: shouldToggleList
-          ? !this.isListChange
-          : (isListChange ?? this.isListChange),
+      isListChange: isListChange ?? this.isListChange,
+      isPanelExpanded: isPanelExpanded ?? this.isPanelExpanded,
+      tempDeliveryAddress: tempDeliveryAddress != null
+          ? tempDeliveryAddress()
+          : this.tempDeliveryAddress,
     );
   }
 
@@ -39,6 +45,8 @@ class DeliveryMapState extends Equatable {
         error: '',
         user: Get.find<UserRepository>().user,
         isListChange: false,
+        isPanelExpanded: false,
+        tempDeliveryAddress: null,
       );
 
   @override
@@ -47,5 +55,7 @@ class DeliveryMapState extends Equatable {
         error,
         user,
         isListChange,
+        isPanelExpanded,
+        tempDeliveryAddress,
       ];
 }

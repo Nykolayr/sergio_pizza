@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:sergio_pizza/presentation/theme/theme.dart';
 
 class ButtonBack extends StatelessWidget {
-  const ButtonBack({super.key});
+  final VoidCallback onPressed;
+  const ButtonBack({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class ButtonBack extends StatelessWidget {
         ],
       ),
       child: IconButton(
-        onPressed: () => context.pop(),
+        onPressed: onPressed,
         icon: const Icon(
           Icons.chevron_left,
           color: AppColor.blueDark,

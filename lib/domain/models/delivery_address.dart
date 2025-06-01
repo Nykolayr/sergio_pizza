@@ -78,6 +78,18 @@ class DeliveryAddress extends Equatable {
     );
   }
 
+  static DeliveryAddress empty() {
+    return const DeliveryAddress(
+      address: '',
+      apartment: '',
+      entrance: '',
+      floor: '',
+      intercom: '',
+      comment: '',
+      coordinates: Point(latitude: 0, longitude: 0),
+    );
+  }
+
   bool get isEmpty => address.isEmpty;
   bool get isNotEmpty => address.isNotEmpty;
 
