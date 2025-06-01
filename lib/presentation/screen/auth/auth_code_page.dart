@@ -148,7 +148,7 @@ class AuthCodePageState extends State<AuthCodePage>
                         },
                         child: Text('Изменить номер',
                             style: AppText.text14sb
-                                .copyWith(color: AppColor.blueLight)),
+                                .copyWith(color: AppColor.blueDark)),
                       ),
                       const Gap(40),
                       // Ввод кода
@@ -165,7 +165,7 @@ class AuthCodePageState extends State<AuthCodePage>
                           activeColor:
                               isError ? Colors.transparent : Color(0xFFE5E5E5),
                           selectedColor:
-                              isError ? Colors.transparent : AppColor.blueLight,
+                              isError ? Colors.transparent : AppColor.blueDark,
                           inactiveColor:
                               isError ? Colors.transparent : Color(0xFFE5E5E5),
                           activeFillColor: Colors.white,

@@ -26,14 +26,14 @@ class ButtonWide extends StatelessWidget {
         width: MediaQuery.of(context).size.width - 40,
         height: 54,
         decoration: BoxDecoration(
-          color: isEnable ? AppColor.blueLight : AppColor.blueLight2,
+          color: isEnable ? AppColor.blueDark : AppColor.blueLight2,
           borderRadius: AppDif.borderRadius16,
         ),
         child: Center(
           child: Text(
             text,
             style: AppText.text14sb.copyWith(
-                color: isEnable ? AppColor.whitefon : AppColor.blueLight),
+                color: isEnable ? AppColor.whitefon : AppColor.blueDark),
           ),
         ),
       ),

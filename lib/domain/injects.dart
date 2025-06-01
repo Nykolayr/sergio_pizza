@@ -11,6 +11,7 @@ import 'package:sergio_pizza/domain/repository/main_repository.dart';
 
 import 'package:sergio_pizza/domain/repository/user_repository.dart';
 import 'package:sergio_pizza/presentation/screen/auth/bloc/auth_bloc.dart';
+import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_bloc.dart';
 import 'package:sergio_pizza/presentation/screen/main/bloc/main_bloc.dart';
 
 /// внедряем зависимости
@@ -80,6 +81,13 @@ Future initMain() async {
     Get.put<MainBloc>(MainBloc());
   } catch (e) {
     Logger.e('MainBloc error = $e');
+    return 'bloc $e';
+  }
+
+  try {
+    Get.put<DeliveryMapBloc>(DeliveryMapBloc());
+  } catch (e) {
+    Logger.e('DeliveryMapBloc error = $e');
     return 'bloc $e';
   }
 

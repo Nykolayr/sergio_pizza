@@ -7,6 +7,8 @@ class DeliveryMapState extends Equatable {
   final bool isListChange;
 
   bool get isReg => user.name.isNotEmpty;
+  DeliveryType get deliveryType => user.deliveryType;
+
   const DeliveryMapState({
     required this.isLoading,
     required this.error,
@@ -14,14 +16,21 @@ class DeliveryMapState extends Equatable {
     required this.isListChange,
   });
 
-  DeliveryMapState copyWith({bool? isLoading, String? error, User? user}) {
+  DeliveryMapState copyWith({
+    bool? isLoading,
+    String? error,
+    User? user,
+    bool? isListChange,
+  }) {
     final shouldToggleList = user != null;
 
     return DeliveryMapState(
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       user: user ?? this.user,
-      isListChange: shouldToggleList ? !isListChange : isListChange,
+      isListChange: shouldToggleList
+          ? !this.isListChange
+          : (isListChange ?? this.isListChange),
     );
   }
 
@@ -33,5 +42,10 @@ class DeliveryMapState extends Equatable {
       );
 
   @override
-  List<Object?> get props => [isLoading, error, user, isListChange];
+  List<Object?> get props => [
+        isLoading,
+        error,
+        user,
+        isListChange,
+      ];
 }

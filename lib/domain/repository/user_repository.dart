@@ -10,6 +10,7 @@ import 'package:sergio_pizza/data/geolocation_servise.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:sergio_pizza/domain/models/delivery_address.dart';
 import 'package:sergio_pizza/domain/models/pickup_address.dart';
+import 'package:sergio_pizza/domain/models/delivery_type.dart';
 
 /// репо для юзера
 class UserRepository extends GetxController {
@@ -37,7 +38,6 @@ class UserRepository extends GetxController {
     // LocalData().clear();
     token = await SecureStorageService().getToken() ?? '';
     await loadUserFromLocal();
-    Logger.i('token >>>>> $token');
   }
 
   /// регистрация пользователя
@@ -252,6 +252,12 @@ class UserRepository extends GetxController {
   /// Сохранение адреса самовывоза
   Future<void> setPickupAddress(PickupAddress address) async {
     user = user.copyWith(pickupAddress: address);
+    await saveUserToLocal();
+  }
+
+  /// Изменение типа доставки
+  Future<void> setDeliveryType(DeliveryType type) async {
+    user = user.copyWith(deliveryType: type);
     await saveUserToLocal();
   }
 }

@@ -2,6 +2,7 @@ import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:equatable/equatable.dart';
 import 'package:sergio_pizza/domain/models/delivery_address.dart';
 import 'package:sergio_pizza/domain/models/pickup_address.dart';
+import 'package:sergio_pizza/domain/models/delivery_type.dart';
 
 /// Модель пользователя
 class User extends Equatable {
@@ -14,6 +15,7 @@ class User extends Equatable {
   final int role;
   final DeliveryAddress deliveryAddress;
   final PickupAddress pickupAddress;
+  final DeliveryType deliveryType;
 
   bool get isReg => name.isNotEmpty;
 
@@ -27,6 +29,7 @@ class User extends Equatable {
     required this.role,
     required this.deliveryAddress,
     required this.pickupAddress,
+    required this.deliveryType,
   });
 
   factory User.initial() => User(
@@ -39,6 +42,7 @@ class User extends Equatable {
         role: 3,
         deliveryAddress: DeliveryAddress.initial(),
         pickupAddress: PickupAddress.initial(),
+        deliveryType: DeliveryType.delivery,
       );
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -59,6 +63,10 @@ class User extends Equatable {
       pickupAddress: json['pickup_address'] != null
           ? PickupAddress.fromJson(json['pickup_address'])
           : PickupAddress.initial(),
+      deliveryType: DeliveryType.values.firstWhere(
+        (type) => type.name == json['delivery_type'],
+        orElse: () => DeliveryType.delivery,
+      ),
     );
   }
 
@@ -73,6 +81,7 @@ class User extends Equatable {
       role: json['role'] ?? 3,
       deliveryAddress: DeliveryAddress.initial(),
       pickupAddress: PickupAddress.initial(),
+      deliveryType: DeliveryType.delivery,
     );
   }
 
@@ -90,6 +99,7 @@ class User extends Equatable {
       'role': role,
       'delivery_address': deliveryAddress.toJson(),
       'pickup_address': pickupAddress.toJson(),
+      'delivery_type': deliveryType.name,
     };
   }
 
@@ -103,6 +113,7 @@ class User extends Equatable {
     int? role,
     DeliveryAddress? deliveryAddress,
     PickupAddress? pickupAddress,
+    DeliveryType? deliveryType,
   }) {
     return User(
       id: id ?? this.id,
@@ -114,6 +125,7 @@ class User extends Equatable {
       role: role ?? this.role,
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
       pickupAddress: pickupAddress ?? this.pickupAddress,
+      deliveryType: deliveryType ?? this.deliveryType,
     );
   }
 
@@ -128,5 +140,6 @@ class User extends Equatable {
         role,
         deliveryAddress,
         pickupAddress,
+        deliveryType,
       ];
 }

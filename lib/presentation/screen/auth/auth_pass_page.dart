@@ -104,7 +104,7 @@ class AuthPassPageState extends State<AuthPassPage>
                           child: Center(
                             child: Text('Изменить номер',
                                 style: AppText.text14sb.copyWith(
-                                  color: AppColor.blueLight,
+                                  color: AppColor.blueDark,
                                 )),
                           ),
                         ),

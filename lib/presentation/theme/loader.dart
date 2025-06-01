@@ -46,7 +46,7 @@ class _AppLoaderState extends State<AppLoader>
           width: 168,
           height: 168,
           colorFilter: const ColorFilter.mode(
-            AppColor.blueLight,
+            AppColor.blueDark,
             BlendMode.srcIn,
           ),
         ),
