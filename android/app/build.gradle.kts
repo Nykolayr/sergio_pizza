@@ -48,6 +48,13 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            // Отключаем минификацию и обфускацию для корректной работы виджетов
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            isDebuggable = true
         }
     }
 }

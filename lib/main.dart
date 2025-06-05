@@ -59,7 +59,14 @@ class MyApp extends StatelessWidget {
             context,
             MediaQuery(
               data: mq.copyWith(textScaler: fontScale),
-              child: child!,
+              child: SafeArea(
+                // Глобальная SafeArea только снизу для защиты от навигационной панели
+                top: false, // Контент может заходить под статус-бар
+                bottom: true, // Защита от навигационной панели снизу
+                left: false, // Контент может заходить к краям экрана
+                right: false, // Контент может заходить к краям экрана
+                child: child!,
+              ),
             ));
       },
     );

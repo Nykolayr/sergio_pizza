@@ -151,54 +151,61 @@ class AuthCodePageState extends State<AuthCodePage>
                                 .copyWith(color: AppColor.blueDark)),
                       ),
                       const Gap(40),
-                      // Ввод кода
-                      PinCodeTextField(
-                        appContext: context,
-                        length: fieldsCount,
-                        obscureText: false,
-                        animationType: AnimationType.fade,
-                        pinTheme: PinTheme(
-                          shape: PinCodeFieldShape.box,
-                          borderRadius: BorderRadius.circular(12),
-                          fieldHeight: fieldWidth,
-                          fieldWidth: fieldWidth,
-                          activeColor:
-                              isError ? Colors.transparent : Color(0xFFE5E5E5),
-                          selectedColor:
-                              isError ? Colors.transparent : AppColor.blueDark,
-                          inactiveColor:
-                              isError ? Colors.transparent : Color(0xFFE5E5E5),
-                          activeFillColor: Colors.white,
-                          inactiveFillColor: Colors.white,
-                          selectedFillColor: Colors.white,
-                          borderWidth: isError ? 0.1 : 1,
-                          inActiveBoxShadow: isError
-                              ? [
-                                  BoxShadow(
-                                    color: Color(0xFFE93F3F)
-                                        .withAlpha((255 * 0.15).toInt()),
-                                    blurRadius: 12,
-                                    spreadRadius: 0,
-                                    offset: Offset(0, 0),
-                                  ),
-                                ]
-                              : [],
+                      // Ввод кода с фиксированными размерами
+                      SizedBox(
+                        height: 80, // Фиксированная высота
+                        width: double.infinity,
+                        child: PinCodeTextField(
+                          appContext: context,
+                          length: fieldsCount,
+                          obscureText: false,
+                          animationType: AnimationType.fade,
+                          pinTheme: PinTheme(
+                            shape: PinCodeFieldShape.box,
+                            borderRadius: BorderRadius.circular(12),
+                            fieldHeight: 60, // Фиксированная высота поля
+                            fieldWidth: 60, // Фиксированная ширина поля
+                            activeColor:
+                                isError ? Colors.red : Color(0xFFE5E5E5),
+                            selectedColor:
+                                isError ? Colors.red : AppColor.blueDark,
+                            inactiveColor:
+                                isError ? Colors.red : Color(0xFFE5E5E5),
+                            activeFillColor: Colors.white,
+                            inactiveFillColor: Colors.white,
+                            selectedFillColor: Colors.white,
+                            borderWidth: isError ? 2 : 1,
+                            inActiveBoxShadow: isError
+                                ? [
+                                    BoxShadow(
+                                      color: Color(0xFFE93F3F)
+                                          .withAlpha((255 * 0.15).toInt()),
+                                      blurRadius: 12,
+                                      spreadRadius: 0,
+                                      offset: Offset(0, 0),
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          textStyle: TextStyle(
+                            color: isError ? Colors.red : Colors.black,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 24,
+                          ),
+                          cursorColor: Colors.black,
+                          animationDuration: Duration(milliseconds: 200),
+                          enableActiveFill: true,
+                          keyboardType: TextInputType.number,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          onChanged: (value) {
+                            if (value.length == 4) {
+                              bloc.add(SendCodeEvent(code: value));
+                            }
+                          },
+                          beforeTextPaste: (text) {
+                            return true;
+                          },
                         ),
-                        textStyle: TextStyle(
-                          color: isError ? Colors.red : Colors.black,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 24,
-                        ),
-                        cursorColor: Colors.black,
-                        animationDuration: Duration(milliseconds: 200),
-                        enableActiveFill: true,
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) {
-                          Logger.i('sendCode value >>>>> $value');
-                          if (value.length == 4) {
-                            bloc.add(SendCodeEvent(code: value));
-                          }
-                        },
                       ),
                       if (isError)
                         Padding(
@@ -222,20 +229,18 @@ class AuthCodePageState extends State<AuthCodePage>
               ],
             );
           }),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          margin: EdgeInsets.only(
-            bottom: keyboardHeight,
-          ),
-          color: Colors.white,
-          child: ButtonWide(
-            text: _canResendCode
-                ? 'Выслать новый код'
-                : 'Повторная отправка через $_remainingSeconds сек',
-            isEnable: _canResendCode,
-            onPressed: _canResendCode ? _onResendCode : () {},
-          ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(20),
+        margin: EdgeInsets.only(
+          bottom: keyboardHeight,
+        ),
+        color: Colors.white,
+        child: ButtonWide(
+          text: _canResendCode
+              ? 'Выслать новый код'
+              : 'Повторная отправка через $_remainingSeconds сек',
+          isEnable: _canResendCode,
+          onPressed: _canResendCode ? _onResendCode : () {},
         ),
       ),
     );
