@@ -90,6 +90,7 @@ flutter:
     - assets/
     - assets/svg/
     - assets/images/
+    - assets/temp/
     - assets/images/location_marker.png
     - assets/images/cafe_marker_blue.png
     - assets/images/cafe_marker_red.png

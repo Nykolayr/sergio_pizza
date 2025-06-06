@@ -135,6 +135,7 @@ class EstablishmentInfoPanel extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: establishment.isOpen
                       ? () {
+                          bloc.add(SelectPickupEstablishment());
                           context.pushNamed('Общая');
                         }
                       : null,

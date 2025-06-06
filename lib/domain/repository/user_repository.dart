@@ -245,13 +245,15 @@ class UserRepository extends GetxController {
 
   /// Сохранение адреса доставки
   Future<void> setDeliveryAddress(DeliveryAddress address) async {
-    user = user.copyWith(deliveryAddress: address);
+    user = user.copyWith(
+        deliveryAddress: address, deliveryType: DeliveryType.delivery);
     await saveUserToLocal();
   }
 
   /// Сохранение адреса самовывоза
   Future<void> setPickupAddress(PickupAddress address) async {
-    user = user.copyWith(pickupAddress: address);
+    user = user.copyWith(
+        pickupAddress: address, deliveryType: DeliveryType.pickup);
     await saveUserToLocal();
   }
 

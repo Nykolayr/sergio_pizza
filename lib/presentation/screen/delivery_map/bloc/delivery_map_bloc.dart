@@ -52,7 +52,7 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
 
   /// событие выбора заведения для пункта самовывоза
   void _onSelectPickupEstablishment(
-      SelectPickupEstablishment event, Emitter<DeliveryMapState> emit) {
+      SelectPickupEstablishment event, Emitter<DeliveryMapState> emit) async {
     final repo = Get.find<UserRepository>();
     final PickupAddress pickupAddress = PickupAddress(
       id: 0,
@@ -64,7 +64,11 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
       coordinates: state.selectedEstablishment?.coordinates ??
           mapkit.Point(latitude: 0, longitude: 0),
     );
-    repo.setPickupAddress(pickupAddress);
+    await repo.setPickupAddress(pickupAddress);
+    emit(state.copyWith(
+      user: repo.user,
+      selectedEstablishment: () => null,
+    ));
   }
 
   /// загрузка заведений
@@ -277,8 +281,6 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
   /// событие сохранения адреса доставки
   void _onSaveDeliveryAddress(
       SaveDeliveryAddress event, Emitter<DeliveryMapState> emit) async {
-    Logger.i('💾 Сохранение адреса доставки');
-
     // Сохраняем tempDeliveryAddress в пользователя
     if (state.tempDeliveryAddress != null &&
         state.tempDeliveryAddress!.address.isNotEmpty) {
@@ -288,7 +290,7 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
             ? (detectedCity ?? 'Зеленоград')
             : state.tempDeliveryAddress!.city,
       );
-
+      Logger.i('💾 Сохранение адреса доставки ${addressToSave.toJson()}');
       await userRepository.setDeliveryAddress(addressToSave);
 
       // Обновляем состояние с сохраненным пользователем
@@ -297,6 +299,7 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
         tempDeliveryAddress: () => null, // Очищаем временный адрес
         detectedAddress: addressToSave, // Обновляем detectedAddress
         isPanelExpanded: false, // Сворачиваем панель
+        selectedDeliveryType: DeliveryType.delivery,
       ));
     }
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
 import 'package:sergio_pizza/presentation/screen/main/bloc/main_bloc.dart';
 import 'package:sergio_pizza/presentation/screen/main/enum_main_page.dart';
 import 'package:sergio_pizza/presentation/screen/main/widgets/oval_bottom_bar.dart';

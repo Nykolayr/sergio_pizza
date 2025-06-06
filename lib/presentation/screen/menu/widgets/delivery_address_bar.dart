@@ -18,14 +18,14 @@ class DeliveryAddressBar extends StatelessWidget {
     return BlocBuilder<DeliveryMapBloc, DeliveryMapState>(
       bloc: deliveryMapBloc,
       builder: (context, state) {
+        final user = state.user;
+
         // Формируем строку адреса в зависимости от типа доставки
         String addressText = '';
 
-        if (state.selectedDeliveryType == DeliveryType.delivery) {
-          // Для доставки берем адрес из tempDeliveryAddress или сохраненного адреса
-          final deliveryAddress =
-              state.tempDeliveryAddress ?? state.user.deliveryAddress;
-
+        if (user.deliveryType == DeliveryType.delivery) {
+          // Для доставки берем deliveryAddress
+          final deliveryAddress = user.deliveryAddress;
           if (deliveryAddress.isNotEmpty) {
             if (deliveryAddress.city.isNotEmpty &&
                 deliveryAddress.address.isNotEmpty) {
@@ -38,14 +38,15 @@ class DeliveryAddressBar extends StatelessWidget {
             }
           }
 
-          // Если адрес пустой, показываем заглушку
+          // Если адрес пустой, показываем заглушку для доставки
           if (addressText.isEmpty) {
             addressText = 'Выберите адрес доставки';
           }
         } else {
-          // Для самовывоза берем адрес выбранного заведения
-          if (state.selectedEstablishment != null) {
-            addressText = state.selectedEstablishment!.address;
+          // Для самовывоза берем pickupAddress
+          final pickupAddress = user.pickupAddress;
+          if (pickupAddress.isNotEmpty) {
+            addressText = pickupAddress.address;
           } else {
             addressText = 'Выберите точку самовывоза';
           }
@@ -105,7 +106,7 @@ class DeliveryAddressBar extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        state.selectedDeliveryType == DeliveryType.delivery
+                        user.deliveryType == DeliveryType.delivery
                             ? 'Доставим в течение 45 минут'
                             : 'Заберите в удобное время',
                         style: const TextStyle(
