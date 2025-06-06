@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:get/get.dart';
 import 'package:sergio_pizza/domain/models/delivery_address.dart';
 import 'package:sergio_pizza/domain/models/establishment_type.dart';
+import 'package:sergio_pizza/domain/models/pickup_address.dart';
 import 'package:sergio_pizza/domain/models/user.dart';
 import 'package:sergio_pizza/domain/repository/user_repository.dart';
 import 'package:sergio_pizza/domain/models/delivery_type.dart';
@@ -46,6 +47,24 @@ class DeliveryMapBloc extends Bloc<DeliveryMapEvent, DeliveryMapState> {
     on<UpdateUserLocationSilently>(_onUpdateUserLocationSilently);
     on<LoadEstablishments>(_onLoadEstablishments);
     on<SelectEstablishment>(_onSelectEstablishment);
+    on<SelectPickupEstablishment>(_onSelectPickupEstablishment);
+  }
+
+  /// событие выбора заведения для пункта самовывоза
+  void _onSelectPickupEstablishment(
+      SelectPickupEstablishment event, Emitter<DeliveryMapState> emit) {
+    final repo = Get.find<UserRepository>();
+    final PickupAddress pickupAddress = PickupAddress(
+      id: 0,
+      name: '',
+      workingHours: '',
+      phone: '',
+      isSelected: true,
+      address: state.selectedEstablishment?.address ?? '',
+      coordinates: state.selectedEstablishment?.coordinates ??
+          mapkit.Point(latitude: 0, longitude: 0),
+    );
+    repo.setPickupAddress(pickupAddress);
   }
 
   /// загрузка заведений

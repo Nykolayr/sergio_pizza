@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sergio_pizza/domain/models/establishment.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_bloc.dart';
 import 'package:sergio_pizza/presentation/screen/delivery_map/widgets/close_icon.dart';
@@ -65,8 +66,9 @@ class EstablishmentInfoPanel extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color:
-                          establishment.isOpen ? AppColor.blue : AppColor.red,
+                      color: establishment.isOpen
+                          ? AppColor.blueDark
+                          : AppColor.red,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -133,16 +135,16 @@ class EstablishmentInfoPanel extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: establishment.isOpen
                       ? () {
-                          // TODO: Обработка выбора заведения
-                          print('Выбрано заведение: ${establishment.address}');
+                          context.pushNamed('Общая');
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: establishment.isOpen
-                        ? AppColor.blue
+                        ? AppColor.blueDark
                         : AppColor.yellowLight,
-                    foregroundColor:
-                        establishment.isOpen ? Colors.white : AppColor.grey,
+                    foregroundColor: establishment.isOpen
+                        ? Colors.white
+                        : AppColor.yellowLight,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -153,7 +155,9 @@ class EstablishmentInfoPanel extends StatelessWidget {
                     establishment.isOpen
                         ? 'Выбрать этот ${establishment.type.displayName.toLowerCase()}'
                         : 'Уведомить, если откроется',
-                    style: AppText.text14sb,
+                    style: establishment.isOpen
+                        ? AppText.text14sb.copyWith(color: Colors.white)
+                        : AppText.text14sb.copyWith(color: AppColor.grey),
                   ),
                 ),
               ),

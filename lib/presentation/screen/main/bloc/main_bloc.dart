@@ -11,6 +11,12 @@ class MainBloc extends Bloc<MainEvent, MainState> {
   MainBloc() : super(MainState.initial()) {
     on<SetErrorEvent>(_onSetErrorEvent);
     on<GetUserEvent>(_onGetUserEvent);
+    on<GoToPageEvent>(_onGoToPageEvent);
+  }
+
+  /// переход на страницу
+  void _onGoToPageEvent(GoToPageEvent event, Emitter<MainState> emit) {
+    emit(state.copyWith(selectedIndex: event.pageIndex));
   }
 
   /// получение пользователя

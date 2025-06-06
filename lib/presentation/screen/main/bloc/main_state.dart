@@ -5,6 +5,7 @@ class MainState extends Equatable {
   final String error;
   final User user;
   final bool isListChange;
+  final int selectedIndex;
 
   bool get isReg => user.name.isNotEmpty;
   const MainState({
@@ -12,9 +13,15 @@ class MainState extends Equatable {
     required this.error,
     required this.user,
     required this.isListChange,
+    required this.selectedIndex,
   });
 
-  MainState copyWith({bool? isLoading, String? error, User? user}) {
+  MainState copyWith({
+    bool? isLoading,
+    String? error,
+    User? user,
+    int? selectedIndex,
+  }) {
     final shouldToggleList = user != null;
 
     return MainState(
@@ -22,16 +29,19 @@ class MainState extends Equatable {
       error: error ?? this.error,
       user: user ?? this.user,
       isListChange: shouldToggleList ? !isListChange : isListChange,
+      selectedIndex: selectedIndex ?? this.selectedIndex,
     );
   }
 
   factory MainState.initial() => MainState(
-    isLoading: false,
-    error: '',
-    user: Get.find<UserRepository>().user,
-    isListChange: false,
-  );
+        isLoading: false,
+        error: '',
+        user: Get.find<UserRepository>().user,
+        isListChange: false,
+        selectedIndex: 0,
+      );
 
   @override
-  List<Object?> get props => [isLoading, error, user, isListChange];
+  List<Object?> get props =>
+      [isLoading, error, user, isListChange, selectedIndex];
 }

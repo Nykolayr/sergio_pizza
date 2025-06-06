@@ -15,3 +15,9 @@ class SetErrorEvent extends MainEvent {
   final String error;
   const SetErrorEvent(this.error);
 }
+
+/// переход на страницу
+class GoToPageEvent extends MainEvent {
+  final int pageIndex;
+  const GoToPageEvent(this.pageIndex);
+}

@@ -7,6 +7,11 @@ abstract class DeliveryMapEvent extends Equatable {
   List<Object> get props => [];
 }
 
+/// событие выбора заведения для пункта самовывоза
+class SelectPickupEstablishment extends DeliveryMapEvent {
+  const SelectPickupEstablishment();
+}
+
 /// установка ошибки
 class SetErrorEvent extends DeliveryMapEvent {
   final String error;

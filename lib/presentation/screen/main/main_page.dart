@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:sergio_pizza/domain/models/delivery_type.dart';
-import 'package:sergio_pizza/domain/repository/user_repository.dart';
 import 'package:go_router/go_router.dart';
-import 'package:sergio_pizza/presentation/screen/delivery_map/bloc/delivery_map_bloc.dart';
+import 'package:sergio_pizza/presentation/screen/main/bloc/main_bloc.dart';
+import 'package:sergio_pizza/presentation/screen/main/enum_main_page.dart';
+import 'package:sergio_pizza/presentation/screen/main/widgets/oval_bottom_bar.dart';
+import 'package:sergio_pizza/presentation/screen/main/widgets/navigation_buttons.dart';
+import 'package:sergio_pizza/presentation/theme/theme.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -13,52 +16,99 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  @override
-  Widget build(BuildContext context) {
-    final userRepository = Get.find<UserRepository>();
+  int selectedIndex = 0;
+  MainBloc bloc = Get.find<MainBloc>();
+  final PageController pageController = PageController();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: GestureDetector(
-          onTap: () {
-            // Переход на смену адреса
-            context.goNamed('карта доставки');
-          },
-          child: Row(
-            children: [
-              const Icon(Icons.location_on),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _getDisplayAddress(userRepository),
-                  style: const TextStyle(fontSize: 16),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const Icon(Icons.keyboard_arrow_down),
-            ],
-          ),
-        ),
-      ),
-      body: Stack(
-        children: [],
-      ),
-    );
+  /// нажатие на таб
+  void onItemTapped(int index) {
+    if (selectedIndex == index) return;
+    setState(() {
+      selectedIndex = index;
+    });
+
+    // Обновляем состояние блока
+    bloc.add(GoToPageEvent(index));
+    // Используем анимацию только для соседних табов
+    if ((index - selectedIndex).abs() == 1) {
+      // Анимируем переход для соседних табов
+      pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      // Мгновенный переход для дальних табов
+      pageController.jumpToPage(index);
+    }
   }
 
-  String _getDisplayAddress(UserRepository userRepository) {
-    DeliveryMapBloc bloc = Get.find<DeliveryMapBloc>();
-    DeliveryMapState state = bloc.state;
-    if (state.user.deliveryType == DeliveryType.delivery) {
-      return '${state.user.deliveryAddress.city}, ${state.user.deliveryAddress.address}';
-    } else if (state.user.deliveryType == DeliveryType.pickup) {
-      if (state.user.pickupAddress.address.isNotEmpty) {
-        return state.user.pickupAddress.address;
-      } else {
-        return 'Выберите адрес самовывоза';
-      }
-    } else {
-      return 'Выберите адрес доставки';
-    }
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          return;
+        }
+      },
+      child: BlocBuilder<MainBloc, MainState>(
+          bloc: bloc,
+          builder: (context, state) {
+            return Scaffold(
+              extendBodyBehindAppBar: true,
+              backgroundColor: AppColor.white,
+              resizeToAvoidBottomInset: true,
+              appBar: PreferredSize(
+                preferredSize: Size.fromHeight(56),
+                child: MainPages.values[selectedIndex].appBar,
+              ),
+              bottomNavigationBar: Stack(
+                children: [
+                  // Овальный фон
+                  const OvalBottomBar(),
+                  // Кнопки навигации поверх
+                  NavigationButtons(
+                    selectedIndex: selectedIndex,
+                    onItemTapped: onItemTapped,
+                  ),
+                ],
+              ),
+              body: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 90),
+                    child: PageView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      controller: pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          selectedIndex = index;
+                        });
+                      },
+                      children: MainPages.values.map((e) => e.page).toList(),
+                    ),
+                  ),
+                  if (state.isLoading) ...[
+                    const Center(
+                        child:
+                            CircularProgressIndicator(color: AppColor.white)),
+                  ],
+                ],
+              ),
+            );
+          }),
+    );
   }
 }
